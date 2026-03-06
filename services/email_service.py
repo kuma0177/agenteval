@@ -21,6 +21,101 @@ def send_email(to: str, subject: str, html: str) -> bool:
     return response.status_code == 200
 
 
+# ── Lead / sample report email ────────────────────────────────────────────────
+
+def send_sample_report_email(email: str, company: str) -> bool:
+    calendly = settings.CALENDLY_URL or "#"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;line-height:1.6;">
+      <h2 style="color:#2e86de;margin-bottom:4px;">Here's what an AgentEval report looks like.</h2>
+      <p style="color:#555;margin-top:0;">Thanks for your interest{(' — ' + company) if company else ''}. Below is a sample of the report format you'll receive.</p>
+      <hr style="border:none;border-top:1px solid #e8e8e8;margin:24px 0;">
+
+      <!-- Cover -->
+      <div style="background:#f0f7ff;border-radius:8px;padding:24px;margin-bottom:20px;text-align:center;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#2e86de;text-transform:uppercase;margin:0 0 8px;">Agent Reliability Audit</p>
+        <p style="font-size:20px;font-weight:700;margin:0 0 4px;">Acme Health AI — Sample</p>
+        <p style="font-size:12px;color:#888;margin:0;">Prepared by AgentEval &nbsp;·&nbsp; Confidential</p>
+      </div>
+
+      <!-- Pass rate -->
+      <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:20px;margin-bottom:20px;text-align:center;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#888;text-transform:uppercase;margin:0 0 4px;">Section 1 — Executive Summary</p>
+        <p style="font-size:56px;font-weight:800;color:#1d8348;margin:8px 0 0;line-height:1;">72%</p>
+        <p style="color:#555;margin:4px 0 16px;">Overall Pass Rate &nbsp;·&nbsp; 25 traces evaluated</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr style="background:#f9f9f9;">
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;font-weight:700;">Total Traces</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;font-weight:700;">Pass Rate</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;font-weight:700;">Human-Reviewed</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;font-weight:700;">Failures</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;">25</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;color:#1d8348;font-weight:700;">72%</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;">4</td>
+            <td style="padding:8px 12px;border:1px solid #e8e8e8;color:#b03a2e;">7</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Dimension scorecard -->
+      <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#888;text-transform:uppercase;margin:0 0 16px;">Section 4 — Dimension Scorecard</p>
+        {''.join(
+          f'<div style="margin-bottom:12px;">'
+          f'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">'
+          f'<span>{label}</span><strong style="color:{color};">{pct}%</strong></div>'
+          f'<div style="background:#e8e8e8;border-radius:3px;height:8px;">'
+          f'<div style="background:{color};width:{pct}%;height:8px;border-radius:3px;"></div></div></div>'
+          for label, pct, color in [
+            ('Task Completion', 78, '#1d8348'),
+            ('Tool Selection', 71, '#1d8348'),
+            ('Reasoning Coherence', 82, '#1d8348'),
+            ('Policy Compliance', 94, '#1d8348'),
+            ('Hallucination Risk', 55, '#e67e22'),
+          ]
+        )}
+      </div>
+
+      <!-- Failure heatmap -->
+      <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#888;text-transform:uppercase;margin:0 0 16px;">Section 5 — Failure Heatmap</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          {''.join(
+            f'<tr><td style="padding:7px 10px;font-weight:600;width:160px;">{cat}</td>'
+            f'<td style="padding:7px 10px;width:40px;color:#888;">{cnt}</td>'
+            f'<td style="padding:7px 10px;"><div style="background:#2e86de;height:14px;width:{w}%;border-radius:3px;"></div></td></tr>'
+            for cat, cnt, w in [
+              ('HALLUCINATION', 3, 100), ('INCOMPLETE', 2, 67), ('WRONG_TOOL', 1, 33), ('LOOP', 1, 33)
+            ]
+          )}
+        </table>
+      </div>
+
+      <!-- Top recommendation -->
+      <div style="background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:20px;margin-bottom:24px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#888;text-transform:uppercase;margin:0 0 16px;">Section 7 — Top 3 Recommendations (excerpt)</p>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:#f0f7ff;border-radius:6px;">
+          <div style="min-width:30px;height:30px;border-radius:50%;background:#2e86de;color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;">1</div>
+          <p style="margin:0;font-size:13px;line-height:1.6;"><strong>Add citation grounding to reduce hallucination risk.</strong> 3 of 7 failures were traced to the agent generating plausible-sounding but unverified clinical facts. Implement retrieval-augmented generation (RAG) with source citations on all patient-facing responses within the next sprint.</p>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;padding:24px 0;">
+        <p style="font-size:16px;font-weight:600;margin-bottom:16px;">Ready to audit your agent?</p>
+        <a href="{calendly}" style="background:#2e86de;color:#fff;padding:13px 28px;border-radius:7px;text-decoration:none;font-weight:700;font-size:15px;">Book a Free Discovery Call</a>
+        <p style="color:#888;font-size:13px;margin-top:20px;">Questions? Reply to this email or write to <a href="mailto:hello@agenteval.com" style="color:#2e86de;">hello@agenteval.com</a></p>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #e8e8e8;margin:24px 0;">
+      <p style="color:#aaa;font-size:11px;text-align:center;">AgentEval &nbsp;·&nbsp; hello@agenteval.com &nbsp;·&nbsp; This email was sent because you requested a sample report.</p>
+    </div>
+    """
+    return send_email(email, "Your AgentEval sample report", html)
+
+
 # ── Client emails ──────────────────────────────────────────────────────────────
 
 def send_intake_email(job) -> bool:

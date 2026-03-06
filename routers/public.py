@@ -19,6 +19,7 @@ def homepage(request: Request):
 
 @router.post("/leads", status_code=201)
 def create_lead(lead: LeadCreate, db: Session = Depends(get_db)):
+    from services.email_service import send_sample_report_email
     db_lead = Lead(
         name=lead.name,
         email=lead.email,
@@ -27,4 +28,5 @@ def create_lead(lead: LeadCreate, db: Session = Depends(get_db)):
     )
     db.add(db_lead)
     db.commit()
+    send_sample_report_email(lead.email, lead.company or "")
     return {"ok": True}
