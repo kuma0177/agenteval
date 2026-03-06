@@ -1,13 +1,14 @@
 import json
+import os
 
 from fastapi import APIRouter, Depends, Request, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Job, Trace, JobStatus
 from config import settings
+from database import get_db
+from models import Job, JobStatus, Trace
 from services.stripe_service import create_checkout_session
 
 router = APIRouter(tags=["client"])
@@ -142,3 +143,127 @@ async def submit_traces(
         )
 
     return RedirectResponse(url=f"/submit/{access_token}?submitted=true", status_code=303)
+
+
+# ── Report ────────────────────────────────────────────────────────────────────
+
+_STATUS_LABELS = {
+    JobStatus.INTAKE: ("Intake form", 1),
+    JobStatus.PAID: ("Payment received", 2),
+    JobStatus.SUBMITTED: ("Traces submitted", 3),
+    JobStatus.EVALUATING: ("LLM evaluation in progress", 4),
+    JobStatus.REVIEW: ("Human review in progress", 5),
+    JobStatus.COMPLETE: ("Report ready", 6),
+}
+
+
+def _timeline_html(current_status: JobStatus) -> str:
+    steps = [
+        (JobStatus.INTAKE, "Intake"),
+        (JobStatus.PAID, "Payment"),
+        (JobStatus.SUBMITTED, "Traces submitted"),
+        (JobStatus.EVALUATING, "Evaluation"),
+        (JobStatus.REVIEW, "Human review"),
+        (JobStatus.COMPLETE, "Report ready"),
+    ]
+    current_idx = next((i for i, (s, _) in enumerate(steps) if s == current_status), 0)
+    items = ""
+    for i, (_, label) in enumerate(steps):
+        if i < current_idx:
+            color, icon = "#1d8348", "&#10003;"
+        elif i == current_idx:
+            color, icon = "#2e86de", "&#9679;"
+        else:
+            color, icon = "#ccc", "&#9675;"
+        items += (
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<span style="font-size:20px;color:{color};">{icon}</span>'
+            f'<span style="color:{color};font-weight:{"700" if i == current_idx else "400"};">{label}</span>'
+            f"</div>"
+        )
+    return items
+
+
+@router.get("/report/{access_token}", response_class=HTMLResponse)
+def report_page(access_token: str, request: Request, db: Session = Depends(get_db)):
+    job = _get_job_or_404(access_token, db)
+
+    report_ready = job.status == JobStatus.COMPLETE and job.report_path and os.path.exists(job.report_path)
+
+    if not report_ready:
+        label, _ = _STATUS_LABELS.get(job.status, ("In progress", 0))
+        timeline = _timeline_html(job.status)
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Report Status — AgentEval</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body style="background:var(--color-surface-2,#f5f6fa);min-height:100vh;display:flex;align-items:center;justify-content:center;">
+  <div style="max-width:480px;width:100%;background:#fff;border-radius:12px;padding:40px;box-shadow:0 2px 16px rgba(0,0,0,.08);">
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:8px;">Report not ready yet</h1>
+    <p style="color:#555;margin-bottom:28px;">Current status: <strong>{label}</strong></p>
+    <div>{timeline}</div>
+    <p style="color:#888;font-size:14px;margin-top:24px;">
+      This page does not auto-refresh. Check back soon or email
+      <a href="mailto:hello@agenteval.com">hello@agenteval.com</a> with questions.
+    </p>
+  </div>
+</body>
+</html>"""
+        return HTMLResponse(html)
+
+    # Report is ready — show download page
+    download_url = f"/report/{access_token}/download"
+    calendly = settings.CALENDLY_URL or "#"
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your Report is Ready — AgentEval</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body style="background:var(--color-surface-2,#f5f6fa);min-height:100vh;display:flex;align-items:center;justify-content:center;">
+  <div style="max-width:480px;width:100%;background:#fff;border-radius:12px;padding:40px;box-shadow:0 2px 16px rgba(0,0,0,.08);text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">&#10003;</div>
+    <h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Your report is ready</h1>
+    <p style="color:#555;margin-bottom:28px;">
+      Your Agent Reliability Audit for <strong>{job.company_name}</strong> is complete.
+    </p>
+    <a href="{download_url}"
+       style="display:inline-block;background:#2e86de;color:#fff;padding:14px 32px;
+              border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;
+              margin-bottom:20px;">
+      &#8595; Download PDF Report
+    </a>
+    <p style="color:#555;margin-top:20px;">
+      Want to walk through the findings with us?<br>
+      <a href="{calendly}" style="color:#2e86de;font-weight:600;">Book your debrief call &rarr;</a>
+    </p>
+    <p style="color:#aaa;font-size:13px;margin-top:24px;">
+      Questions? <a href="mailto:hello@agenteval.com" style="color:#888;">hello@agenteval.com</a>
+    </p>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(html)
+
+
+@router.get("/report/{access_token}/download")
+def report_download(access_token: str, db: Session = Depends(get_db)):
+    job = _get_job_or_404(access_token, db)
+
+    if job.status != JobStatus.COMPLETE or not job.report_path:
+        raise HTTPException(status_code=404, detail="Report not available yet.")
+    if not os.path.exists(job.report_path):
+        raise HTTPException(status_code=404, detail="Report file not found. Contact hello@agenteval.com")
+
+    filename = f"AgentEval-Report-{job.company_name.replace(' ', '-')}.pdf"
+    return FileResponse(
+        path=job.report_path,
+        media_type="application/pdf",
+        filename=filename,
+    )

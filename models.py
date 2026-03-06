@@ -61,6 +61,8 @@ class Trace(Base):
     llm_verdict = Column(String, nullable=True)
     llm_reasoning = Column(Text, nullable=True)
     llm_score = Column(Float, nullable=True)
+    failure_category = Column(String, nullable=True)
+    failure_detail = Column(Text, nullable=True)
     human_verdict = Column(String, nullable=True)
     human_notes = Column(Text, nullable=True)
     reviewer_token = Column(String, nullable=True)
