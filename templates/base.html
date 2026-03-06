@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">AgentEval</a>
+    <ul class="nav-links">
+      <li><a href="/#how-it-works">How It Works</a></li>
+      <li><a href="/#sample-report">What You Get</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><a href="/#faq">FAQ</a></li>
+    </ul>
+    <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary nav-cta" style="padding:9px 20px;font-size:14px;">Book a Call</a>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/#how-it-works">How It Works</a>
+  <a href="/#sample-report">What You Get</a>
+  <a href="/#pricing">Pricing</a>
+  <a href="/#faq">FAQ</a>
+  <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary" style="text-align:center;">Book a Call</a>
+</div>
+
+<script>
+  const ham = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  ham.addEventListener('click', () => menu.classList.toggle('open'));
+</script>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <span class="footer-logo">AgentEval</span>
+        <p class="footer-tagline">The AI agent evaluation service</p>
+      </div>
+      <div>
+        <ul class="footer-links">
+          <li><a href="/#how-it-works">How It Works</a></li>
+          <li><a href="/#sample-report">What You Get</a></li>
+          <li><a href="/#pricing">Pricing</a></li>
+          <li><a href="/#faq">FAQ</a></li>
+          <li><a href="mailto:hello@agenteval.com">hello@agenteval.com</a></li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.35);">
+          &copy; {{ 2025 }} AgentEval. All rights reserved.
+        </p>
+        <ul class="footer-links" style="margin-top:12px;">
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

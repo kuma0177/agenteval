@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="conv-nav">
+  <div class="conv-nav-inner">
+    <a href="/" class="nav-logo">AgentEval</a>
+    <span style="font-size:14px;color:var(--color-subtle);">{% block step_indicator %}{% endblock %}</span>
+  </div>
+</nav>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" style="width: {% block progress %}0{% endblock %}%;"></div>
+</div>
+
+<main style="padding: 56px 0 80px;">
+  {% block content %}{% endblock %}
+</main>
+
+<div style="text-align:center;padding:24px;font-size:13px;color:var(--color-subtle);border-top:1px solid var(--color-rule);">
+  Questions? <a href="mailto:hello@agenteval.com">hello@agenteval.com</a>
+</div>
+
+</body>
+</html>

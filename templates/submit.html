@@ -1,0 +1,118 @@
+{% extends "conversion_base.html" %}
+
+{% block head %}<title>AgentEval — Submit Traces</title>{% endblock %}
+{% block step_indicator %}Step 2 of 3: Submit Traces{% endblock %}
+{% block progress %}66{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;padding:0 24px;">
+
+  <h1 class="text-h1" style="margin-bottom:16px;">Submit Your Agent Traces</h1>
+  <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:32px;line-height:1.65;">
+    Paste your agent's conversation logs below. Each trace is one complete agent run — from the user's first message to the agent's final output.
+  </p>
+
+  <!-- Format guide -->
+  <details style="margin-bottom:32px;background:var(--color-surface-2);border-radius:var(--radius-md);padding:16px 20px;border:none;">
+    <summary style="font-size:var(--text-small);font-weight:600;color:var(--color-near-black);">Expected JSON format (click to expand)</summary>
+    <pre style="margin-top:16px;background:#1c1c1e;color:#e5e5e5;border-radius:var(--radius-sm);padding:16px;font-size:13px;overflow-x:auto;line-height:1.6;"><code>{
+  "messages": [
+    {"role": "user", "content": "Schedule a meeting with Dr. Smith"},
+    {"role": "assistant", "content": "I'll help schedule that.",
+     "tool_calls": [{"name": "calendar.create", "input": {"title": "Meeting with Dr. Smith"}}]},
+    {"role": "tool", "content": "Meeting created for Thursday 2pm"},
+    {"role": "assistant", "content": "Done — meeting scheduled for Thursday at 2pm."}
+  ]
+}</code></pre>
+  </details>
+
+  <form id="trace-form" action="/submit/{{ access_token }}" method="POST" enctype="multipart/form-data">
+
+    <!-- Trace blocks container -->
+    <div id="trace-blocks">
+      <div class="trace-block" data-index="1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:14px;font-weight:700;color:var(--color-accent);">Trace 1</span>
+        </div>
+        <div class="form-group">
+          <textarea name="traces[]" class="mono" style="height:300px;" placeholder="Paste trace JSON here..." required></textarea>
+        </div>
+        <div class="form-group">
+          <input type="text" name="outcomes[]" placeholder="What was this trace trying to accomplish?" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add trace button -->
+    <button type="button" id="add-trace" style="background:none;border:1.5px dashed var(--color-rule);color:var(--color-accent);font-size:15px;font-weight:600;padding:14px;border-radius:var(--radius-md);width:100%;cursor:pointer;margin-bottom:8px;transition:border-color var(--transition-fast);">
+      + Add another trace
+    </button>
+    <p style="font-size:14px;color:var(--color-subtle);margin-bottom:32px;text-align:center;" id="trace-counter">1 trace added</p>
+
+    <!-- File upload alternative -->
+    <div style="border-top:1px solid var(--color-rule);padding-top:28px;margin-bottom:32px;">
+      <p style="font-size:15px;font-weight:600;margin-bottom:10px;">Prefer to upload a file?</p>
+      <div class="form-group">
+        <input type="file" name="trace_file" accept=".json" style="font-size:14px;">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full" id="submit-btn" style="font-size:18px;padding:18px 28px;">
+      Submit 1 Trace for Evaluation →
+    </button>
+
+    <p style="font-size:12px;color:var(--color-subtle);margin-top:16px;text-align:center;line-height:1.6;">
+      Your traces are treated as confidential. We don't train on your data. Reviewers sign NDAs.
+    </p>
+
+  </form>
+</div>
+
+<script>
+let count = 1;
+const MAX = 25;
+
+function updateCounter() {
+  const counter = document.getElementById('trace-counter');
+  const submitBtn = document.getElementById('submit-btn');
+  counter.textContent = count + (count === 1 ? ' trace added' : ' traces added');
+  submitBtn.textContent = 'Submit ' + count + (count === 1 ? ' Trace' : ' Traces') + ' for Evaluation →';
+}
+
+document.getElementById('add-trace').addEventListener('click', function() {
+  if (count >= MAX) { alert('Maximum 25 traces per submission.'); return; }
+  count++;
+  const container = document.getElementById('trace-blocks');
+  const block = document.createElement('div');
+  block.className = 'trace-block';
+  block.dataset.index = count;
+  block.style.marginTop = '24px';
+  block.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-size:14px;font-weight:700;color:var(--color-accent);">Trace ${count}</span>
+      <a href="#" class="remove-trace" style="font-size:13px;color:var(--color-fail);text-decoration:none;">Remove</a>
+    </div>
+    <div class="form-group">
+      <textarea name="traces[]" class="mono" style="height:300px;" placeholder="Paste trace JSON here..." required></textarea>
+    </div>
+    <div class="form-group">
+      <input type="text" name="outcomes[]" placeholder="What was this trace trying to accomplish?" required>
+    </div>`;
+  container.appendChild(block);
+  updateCounter();
+});
+
+document.getElementById('trace-blocks').addEventListener('click', function(e) {
+  if (e.target.classList.contains('remove-trace')) {
+    e.preventDefault();
+    e.target.closest('.trace-block').remove();
+    count--;
+    // Re-number
+    document.querySelectorAll('.trace-block').forEach((b, i) => {
+      b.querySelector('span').textContent = 'Trace ' + (i + 1);
+    });
+    updateCounter();
+  }
+});
+</script>
+{% endblock %}

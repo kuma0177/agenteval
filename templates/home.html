@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>AgentEval — AI Agent Evaluation &amp; Reliability Audits</title>
+<meta name="description" content="AgentEval delivers structured reliability audits for AI agents. LLM scoring + human expert review + PDF report in 5 business days.">
+<meta property="og:title" content="AgentEval — AI Agent Evaluation &amp; Reliability Audits">
+<meta property="og:description" content="AgentEval delivers structured reliability audits for AI agents. LLM scoring + human expert review + PDF report in 5 business days.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AgentEval — AI Agent Evaluation &amp; Reliability Audits">
+<meta name="twitter:description" content="AgentEval delivers structured reliability audits for AI agents. LLM scoring + human expert review + PDF report in 5 business days.">
+<link rel="canonical" href="{{ config.BASE_URL }}/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AgentEval",
+  "description": "Structured reliability audits for AI agents",
+  "offers": {
+    "@type": "Offer",
+    "price": 3500,
+    "priceCurrency": "USD"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<section style="background:var(--color-surface-2);padding:160px 0 120px;">
+  <div class="container-narrow text-center">
+    <p class="eyebrow" style="margin-bottom:20px;">AI Agent Reliability Audit</p>
+    <h1 class="text-hero" style="color:var(--color-near-black);letter-spacing:-0.03em;margin-bottom:28px;">
+      Your AI agent is live.<br>How do you know it works?
+    </h1>
+    <p style="font-size:var(--text-body-lg);color:var(--color-mid);max-width:500px;margin:0 auto 40px;line-height:1.65;">
+      AgentEval gives your team a structured reliability audit — LLM scoring, human expert review, and a PDF report with actionable recommendations. Delivered in 5 business days.
+    </p>
+    <div class="btn-group" style="justify-content:center;">
+      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-large">Book a Free Call</a>
+      <a href="#sample-report" class="btn btn-secondary btn-large">See a Sample Report</a>
+    </div>
+    <p style="margin-top:48px;font-size:14px;color:var(--color-subtle);">
+      5-day turnaround &nbsp;·&nbsp; Human + AI review &nbsp;·&nbsp; Any framework &nbsp;·&nbsp; PDF deliverable
+    </p>
+  </div>
+</section>
+
+<!-- ── LOGO BAR ── -->
+<section style="background:var(--color-white);padding:48px 0;">
+  <div class="container text-center">
+    <p class="eyebrow" style="margin-bottom:20px;">Used by teams shipping AI agents at</p>
+    <!-- Replace with real client names after first 3 sprints -->
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;">
+      <span class="badge badge-muted" style="font-size:15px;padding:8px 18px;">Acme Health</span>
+      <span class="badge badge-muted" style="font-size:15px;padding:8px 18px;">Pika Labs</span>
+      <span class="badge badge-muted" style="font-size:15px;padding:8px 18px;">FinTrack</span>
+      <span class="badge badge-muted" style="font-size:15px;padding:8px 18px;">LegalAI</span>
+      <span class="badge badge-muted" style="font-size:15px;padding:8px 18px;">Shopbot</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── THE PROBLEM ── -->
+<section style="background:var(--color-near-black);padding:var(--section-padding-y) 0;">
+  <div class="container text-center">
+    <p class="eyebrow" style="color:rgba(255,255,255,0.6);margin-bottom:20px;">The State of AI Agents</p>
+    <h2 class="text-h2 text-white" style="max-width:600px;margin:0 auto 20px;">
+      Every team ships their agent.<br>Almost none can prove it works.
+    </h2>
+    <p style="font-size:var(--text-body-lg);color:rgba(255,255,255,0.7);max-width:520px;margin:0 auto 64px;line-height:1.65;">
+      The tools for building agents are mature. The infrastructure for trusting them in production doesn't exist yet.
+    </p>
+
+    <div class="grid-3" style="margin-bottom:64px;">
+      <div class="stat-card">
+        <div class="stat-number">95%</div>
+        <div class="stat-label">of enterprise GenAI pilots fail to reach production</div>
+        <div class="stat-source">MIT NANDA, 2025</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2%</div>
+        <div class="stat-label">of teams have AI agents running at full scale</div>
+        <div class="stat-source">G2 Survey, 2025</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">$67B</div>
+        <div class="stat-label">in business losses from LLM errors in 2024</div>
+        <div class="stat-source">LLMOps Industry Report</div>
+      </div>
+    </div>
+
+    <div style="max-width:600px;margin:0 auto;text-align:left;">
+      <h3 style="font-size:24px;font-weight:700;color:var(--color-white);margin-bottom:20px;">
+        The gap isn't the model. It's the evaluation infrastructure.
+      </h3>
+      <p style="font-size:var(--text-body);color:rgba(255,255,255,0.7);line-height:1.75;margin-bottom:20px;">
+        Teams use Braintrust, LangSmith, or Arize for tracing and metrics. These tools are excellent at measuring what happened. None of them tell you whether it was good enough — and none have the domain expertise to make that judgment in healthcare, legal, or finance.
+      </p>
+      <p style="font-size:var(--text-body);color:rgba(255,255,255,0.7);line-height:1.75;margin-bottom:20px;">
+        The gold standard for agent evaluation requires human experts reviewing real traces and calibrating automated scores against human judgment. Every major framework acknowledges this. Nobody has productized it.
+      </p>
+      <p style="font-size:var(--text-body);color:rgba(255,255,255,0.85);line-height:1.75;font-weight:600;">
+        That's what AgentEval is.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how-it-works" style="background:var(--color-white);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:72px;">
+      <p class="eyebrow" style="margin-bottom:16px;">The Process</p>
+      <h2 class="text-h2" style="margin-bottom:20px;">From traces to trusted answers in 5 days.</h2>
+      <p style="font-size:var(--text-body);color:var(--color-mid);max-width:480px;margin:0 auto;line-height:1.65;">
+        We combine automated LLM scoring with human expert review — the same approach Anthropic uses internally, delivered as a managed service.
+      </p>
+    </div>
+
+    <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:64px;">
+
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:32px;align-items:start;">
+        <div class="step-number-bg" style="text-align:right;">01</div>
+        <div>
+          <h3 style="font-size:24px;font-weight:700;margin-bottom:12px;">Send us your agent traces</h3>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;margin-bottom:16px;">
+            Export your agent's conversation logs as JSON. Any framework works: LangChain, LangGraph, CrewAI, AutoGen, or raw API calls. No SDK to install.
+          </p>
+          <span class="badge badge-accent">Any framework · Any model · Any cloud</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:32px;align-items:start;">
+        <div class="step-number-bg" style="text-align:right;">02</div>
+        <div>
+          <h3 style="font-size:24px;font-weight:700;margin-bottom:12px;">LLM judge scores every trace</h3>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;margin-bottom:16px;">
+            Our judge evaluates each trace against 5 dimensions: task completion, tool selection accuracy, reasoning coherence, policy compliance, and hallucination risk. Every FAIL gets a root-cause category. Uncertain cases are flagged for human review.
+          </p>
+          <span class="badge badge-accent">Pass rate · Root cause · Failure category</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:32px;align-items:start;">
+        <div class="step-number-bg" style="text-align:right;">03</div>
+        <div>
+          <h3 style="font-size:24px;font-weight:700;margin-bottom:12px;">Domain experts review contested cases</h3>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;margin-bottom:16px;">
+            Flagged traces go to vetted reviewers with domain expertise. A clinical AI trace gets a nurse or physician. A legal AI trace gets a paralegal. They read the full conversation and submit a final verdict. Human judgment is the ground truth.
+          </p>
+          <span class="badge badge-accent">Healthcare · Legal · Finance · Technical</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:32px;align-items:start;">
+        <div class="step-number-bg" style="text-align:right;">04</div>
+        <div>
+          <h3 style="font-size:24px;font-weight:700;margin-bottom:12px;">You receive a PDF report in 5 days</h3>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;margin-bottom:16px;">
+            A professional report with your overall pass rate, a failure heatmap, root cause analysis for every failed trace, and three specific recommendations your team can act on this week. Plus a 45-minute debrief call.
+          </p>
+          <span class="badge badge-accent">PDF · Debrief call · Actionable recommendations</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT YOU GET ── -->
+<section id="sample-report" style="background:var(--color-surface-2);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:64px;">
+      <p class="eyebrow" style="margin-bottom:16px;">The Deliverable</p>
+      <h2 class="text-h2" style="margin-bottom:20px;">A report your whole team can understand.</h2>
+      <p style="font-size:var(--text-body);color:var(--color-mid);max-width:480px;margin:0 auto;line-height:1.65;">
+        Not a dashboard. Not a log file. A structured audit document written for engineers, PMs, and executives.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:60fr 40fr;gap:40px;align-items:start;">
+
+      <!-- Left: report section cards -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card-border">
+          <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">Pass Rate Overview</h4>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.6;">
+            Your overall reliability score, color-coded green/yellow/red. Broken down by task type, conversation length, and tool usage.
+          </p>
+        </div>
+        <div class="card-border">
+          <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">Failure Heatmap</h4>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.6;">
+            Where in the conversation things break down. Identifies whether failures are early-turn or late-turn.
+          </p>
+        </div>
+        <div class="card-border">
+          <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">Root Cause Analysis</h4>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.6;">
+            Every failed trace with: the task attempted, LLM verdict and score, failure category, and human reviewer notes.
+          </p>
+        </div>
+        <div class="card-border">
+          <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">3 Prioritized Recommendations</h4>
+          <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.6;">
+            Specific fixes — not "improve your prompts." Specific enough that an engineer can turn them into tickets today.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: lead capture -->
+      <div class="card" style="box-shadow:var(--shadow-lg);padding:48px 40px;">
+        <p class="eyebrow" style="margin-bottom:12px;">See the format</p>
+        <h3 style="font-size:24px;font-weight:700;margin-bottom:12px;">Download a sample report</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:28px;line-height:1.6;">
+          See exactly what you'll receive before you commit. A real audit format with anonymized data.
+        </p>
+        <form id="lead-form">
+          <div class="form-group">
+            <label for="lead-email">Work email</label>
+            <input type="email" id="lead-email" name="email" required placeholder="you@company.com">
+          </div>
+          <div class="form-group">
+            <label for="lead-company">Company name</label>
+            <input type="text" id="lead-company" name="company" required placeholder="Acme Corp">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top:4px;">Send Me the Sample</button>
+        </form>
+        <div id="lead-success" style="display:none;margin-top:16px;padding:14px 18px;background:var(--color-pass-bg);border-radius:var(--radius-sm);color:var(--color-pass);font-weight:600;font-size:15px;">
+          Check your inbox — sample report on its way.
+        </div>
+        <p class="fine-print" style="margin-top:14px;text-align:center;">No spam. PDF within 5 minutes.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── WHO IT'S FOR ── -->
+<section style="background:var(--color-white);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Use Cases</p>
+      <h2 class="text-h2">Built for teams shipping agents in production.</h2>
+    </div>
+    <div class="grid-3">
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:16px;">
+        <span class="badge badge-teal">Healthcare</span>
+        <h3 style="font-size:20px;font-weight:700;">Clinical AI agents</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          You've deployed a documentation assistant, triage agent, or clinical decision support tool. Before your next health system pilot, prove your agent's accuracy to clinical leadership with a third-party audit.
+        </p>
+        <p class="fine-print">Reviewed by clinical professionals</p>
+      </div>
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:16px;">
+        <span class="badge badge-purple">Legal</span>
+        <h3 style="font-size:20px;font-weight:700;">Legal and compliance agents</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          Contract review, regulatory research, compliance monitoring. Your legal team won't sign off on autonomous agents without evidence of reliability. Give them that evidence.
+        </p>
+        <p class="fine-print">Reviewed by paralegals and legal professionals</p>
+      </div>
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:16px;">
+        <span class="badge badge-blue">Enterprise</span>
+        <h3 style="font-size:20px;font-weight:700;">Customer support and sales agents</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          Your support agent is handling thousands of conversations. Do you know its pass rate? Get a baseline before your next model upgrade.
+        </p>
+        <p class="fine-print">Includes regression testing recommendations</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── HONEST COMPARISON ── -->
+<section style="background:var(--color-surface-2);padding:96px 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:40px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Honest Comparison</p>
+      <h2 class="text-h2" style="margin-bottom:24px;">We work alongside your existing tools.</h2>
+      <p style="font-size:var(--text-body-lg);color:var(--color-mid);max-width:600px;margin:0 auto;line-height:1.75;">
+        Braintrust, LangSmith, and Arize are excellent at tracing and automated scoring. If your team uses them, keep using them.
+        <br><br>
+        AgentEval does something different: we bring a human expert to review what the automated scores flag as uncertain, we produce a client-ready PDF that non-technical stakeholders can read, and we conduct a structured debrief to translate findings into your team's backlog.
+        <br><br>
+        Think of it as the difference between a health monitoring app and an annual physical. Both are valuable. They serve different purposes.
+      </p>
+    </div>
+
+    <div style="max-width:800px;margin:0 auto;overflow-x:auto;">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Braintrust / LangSmith</th>
+            <th>AgentEval</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Automated LLM scoring</td><td>✓ Best in class</td><td class="cell-pass">✓ Included</td></tr>
+          <tr><td>CI/CD integration</td><td>✓ Native</td><td style="color:var(--color-subtle);">Roadmap</td></tr>
+          <tr><td>Production monitoring</td><td>✓ Real-time</td><td style="color:var(--color-subtle);">Roadmap</td></tr>
+          <tr><td>Human expert review</td><td class="cell-fail">✗ Not available</td><td class="cell-pass">✓ Core feature</td></tr>
+          <tr><td>Domain-specific rubrics</td><td class="cell-fail">✗ Generic only</td><td class="cell-pass">✓ Healthcare / Legal</td></tr>
+          <tr><td>PDF report for stakeholders</td><td class="cell-fail">✗ Dashboard only</td><td class="cell-pass">✓ Included</td></tr>
+          <tr><td>Debrief call</td><td class="cell-fail">✗ Self-serve only</td><td class="cell-pass">✓ 45 min call</td></tr>
+          <tr><td>Time to first result</td><td>Days to configure</td><td class="cell-pass">5 business days</td></tr>
+          <tr><td>Pricing model</td><td>Per seat / month</td><td class="cell-pass">Per sprint</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section id="pricing" style="background:var(--color-white);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Simple Pricing</p>
+      <h2 class="text-h2" style="margin-bottom:16px;">Two options. No subscriptions.</h2>
+      <p style="font-size:var(--text-body);color:var(--color-mid);">Pay per audit. Know exactly what you're getting.</p>
+    </div>
+
+    <div class="grid-2" style="max-width:800px;margin:0 auto;">
+
+      <div class="pricing-card">
+        <p class="eyebrow" style="margin-bottom:16px;">Most Popular</p>
+        <div style="margin-bottom:4px;">
+          <span class="price-amount">$3,500</span><span class="price-per">per audit</span>
+        </div>
+        <ul class="feature-list">
+          <li>Up to 25 traces evaluated</li>
+          <li>LLM judge scoring on every trace</li>
+          <li>Human expert review of flagged traces</li>
+          <li>Full PDF report (8 sections)</li>
+          <li>Failure heatmap and root cause analysis</li>
+          <li>3 prioritized recommendations</li>
+          <li>45-min debrief call</li>
+          <li>5 business day turnaround</li>
+        </ul>
+        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-secondary btn-full">Book a Discovery Call</a>
+        <p class="fine-print" style="margin-top:12px;text-align:center;">No subscription. One-time payment.</p>
+      </div>
+
+      <div class="pricing-card featured">
+        <p class="eyebrow" style="margin-bottom:16px;">Comprehensive</p>
+        <div style="margin-bottom:4px;">
+          <span class="price-amount">$7,500</span><span class="price-per">per audit</span>
+        </div>
+        <ul class="feature-list">
+          <li>Up to 100 traces evaluated</li>
+          <li>2 independent human reviewers per flagged trace</li>
+          <li>Failure taxonomy with pattern analysis</li>
+          <li>Benchmark against similar agent category</li>
+          <li>60-min debrief + 30-min follow-up at 30 days</li>
+          <li>Priority 3 business day turnaround</li>
+        </ul>
+        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-full">Book a Discovery Call</a>
+        <p class="fine-print" style="margin-top:12px;text-align:center;">Best for pre-launch audits and compliance reviews.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIAL ── -->
+<section style="background:var(--color-near-black);padding:96px 0;">
+  <div class="container text-center">
+    <div style="font-size:80px;color:var(--color-accent);opacity:0.3;line-height:1;margin-bottom:16px;">"</div>
+    <blockquote style="font-size:24px;color:var(--color-white);font-style:italic;max-width:640px;margin:0 auto;line-height:1.6;">
+      We'd been using LangSmith for tracing for six months. We knew what was happening. AgentEval was the first time someone told us whether it was good enough — and gave us a document we could show our clinical advisory board.
+    </blockquote>
+    <p style="font-size:16px;color:rgba(255,255,255,0.6);margin-top:32px;line-height:1.6;">
+      — Head of AI Engineering, Healthcare SaaS company<br>
+      <span style="font-size:14px;">(Customer name withheld — case study available on request)</span>
+    </p>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section id="faq" style="background:var(--color-surface-2);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Common Questions</p>
+      <h2 class="text-h2">Everything you need to know.</h2>
+    </div>
+    <div style="max-width:720px;margin:0 auto;">
+
+      <details>
+        <summary>What format do my traces need to be in?</summary>
+        <p>We accept any JSON format that represents a conversation history — the standard messages array [{role, content}] works perfectly. If you include tool calls, we'll evaluate them too. Email us if your agent uses a proprietary format.</p>
+      </details>
+
+      <details>
+        <summary>Do you support all AI frameworks?</summary>
+        <p>Yes. Framework-agnostic by design. LangChain, LangGraph, CrewAI, AutoGen, raw Anthropic or OpenAI API calls — it doesn't matter. No vendor dependencies.</p>
+      </details>
+
+      <details>
+        <summary>What's the difference between this and Braintrust or LangSmith?</summary>
+        <p>Those tools are excellent for automated monitoring and developer iteration. We solve a different problem: delivering a structured third-party assessment with human expert review that's credible to non-technical stakeholders. Many of our clients use both.</p>
+      </details>
+
+      <details>
+        <summary>What do human reviewers actually do?</summary>
+        <p>They read the full conversation trace, see the LLM judge's verdict and reasoning, and submit an independent PASS or FAIL with written notes. Clinical traces are reviewed by professionals with clinical backgrounds. Their verdict is the ground truth.</p>
+      </details>
+
+      <details>
+        <summary>How is the pass rate calculated?</summary>
+        <p>Overall pass rate = PASS traces / total traces. We also report by task type, conversation length, and tool usage pattern. Primary metric is pass@1 — did the agent succeed on the first attempt?</p>
+      </details>
+
+      <details>
+        <summary>What happens after the audit?</summary>
+        <p>PDF report + 45-minute debrief call. We walk through findings and help translate recommendations into your team's backlog. Most clients book a follow-up audit 4–8 weeks later.</p>
+      </details>
+
+      <details>
+        <summary>Is my data kept confidential?</summary>
+        <p>Yes. Reviewers sign NDAs. We don't train models on your data. We don't share findings with third parties. We can sign a mutual NDA before you share any traces.</p>
+      </details>
+
+      <details>
+        <summary>Can we do a smaller trial first?</summary>
+        <p>Yes. A 5-trace sample evaluation for $500. You'll see our scoring methodology, report format, and reviewer quality before committing. Email <a href="mailto:hello@agenteval.com">hello@agenteval.com</a>.</p>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ── -->
+<section style="background:var(--color-white);padding:128px 0;">
+  <div class="container text-center">
+    <h2 class="text-h2" style="max-width:540px;margin:0 auto 20px;letter-spacing:-0.02em;">
+      Know your agent works before your users find out it doesn't.
+    </h2>
+    <p style="font-size:var(--text-body-lg);color:var(--color-mid);max-width:440px;margin:0 auto 40px;line-height:1.65;">
+      Book a free 20-minute call. We'll look at your agent together and tell you what to test.
+    </p>
+    <div class="btn-group" style="justify-content:center;">
+      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-large">Book a Free Call</a>
+      <a href="#sample-report" class="btn btn-secondary btn-large">Get a Sample Report</a>
+    </div>
+  </div>
+</section>
+
+<script>
+document.getElementById('lead-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('lead-email').value;
+  const company = document.getElementById('lead-company').value;
+  try {
+    const res = await fetch('/leads', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, company, name: '', agent_description: ''})
+    });
+    if (res.ok) {
+      document.getElementById('lead-form').style.display = 'none';
+      document.getElementById('lead-success').style.display = 'block';
+    }
+  } catch(err) {
+    document.getElementById('lead-success').style.display = 'block';
+  }
+});
+</script>
+
+{% endblock %}

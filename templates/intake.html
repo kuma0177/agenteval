@@ -1,0 +1,76 @@
+{% extends "conversion_base.html" %}
+
+{% block head %}<title>AgentEval — Confirm &amp; Pay</title>{% endblock %}
+{% block step_indicator %}Step 1 of 3: Confirm &amp; Pay{% endblock %}
+{% block progress %}33{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+
+  <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:8px;">Hi {{ job.contact_name }},</p>
+  <h1 class="text-h1" style="margin-bottom:24px;">Your Agent Reliability Audit</h1>
+
+  <div style="margin-bottom:28px;">
+    <span class="badge badge-accent" style="font-size:15px;padding:7px 16px;">{{ job.company_name }}</span>
+  </div>
+
+  <!-- Audit summary card -->
+  <div class="card" style="margin-bottom:32px;">
+    <h3 style="font-size:17px;font-weight:700;margin-bottom:20px;color:var(--color-near-black);">Audit Summary</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:10px 0;font-size:15px;color:var(--color-subtle);width:140px;vertical-align:top;">Agent</td>
+        <td style="padding:10px 0;font-size:15px;color:var(--color-near-black);line-height:1.6;">{{ job.agent_description }}</td>
+      </tr>
+      <tr style="border-top:1px solid var(--color-rule);">
+        <td style="padding:10px 0;font-size:15px;color:var(--color-subtle);">Format</td>
+        <td style="padding:10px 0;font-size:15px;color:var(--color-near-black);">Starter Audit (up to 25 traces)</td>
+      </tr>
+      <tr style="border-top:1px solid var(--color-rule);">
+        <td style="padding:10px 0;font-size:15px;color:var(--color-subtle);">Turnaround</td>
+        <td style="padding:10px 0;font-size:15px;color:var(--color-near-black);">5 business days</td>
+      </tr>
+      <tr style="border-top:1px solid var(--color-rule);">
+        <td style="padding:10px 0;font-size:15px;color:var(--color-subtle);">Includes</td>
+        <td style="padding:10px 0;font-size:15px;color:var(--color-near-black);">LLM scoring + human review + PDF report + debrief call</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- What happens next -->
+  <div style="margin-bottom:40px;">
+    <h3 style="font-size:17px;font-weight:700;margin-bottom:16px;">What happens next</h3>
+    <ol style="padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px;">
+      {% for step in [
+        "Complete payment below",
+        "Submit your agent traces (JSON — instructions provided)",
+        "We evaluate all traces within 5 days",
+        "You receive your PDF report",
+        "We meet for a 45-minute debrief call"
+      ] %}
+      <li style="display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid var(--color-rule);line-height:2.2;">
+        <span style="font-size:14px;font-weight:700;color:var(--color-accent);flex-shrink:0;width:20px;">{{ loop.index }}</span>
+        <span style="font-size:var(--text-body);color:var(--color-mid);">{{ step }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <!-- Price + pay button -->
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-size:40px;font-weight:700;color:var(--color-near-black);letter-spacing:-0.02em;line-height:1.1;">$3,500</div>
+    <p style="font-size:var(--text-small);color:var(--color-subtle);margin-top:6px;margin-bottom:28px;">One-time payment · No subscription</p>
+
+    <form action="/intake/{{ job.access_token }}/checkout" method="POST">
+      <button type="submit" class="btn btn-primary btn-full" style="font-size:18px;padding:18px 28px;">
+        Pay $3,500 and Begin →
+      </button>
+    </form>
+
+    <p style="margin-top:16px;font-size:var(--text-label);color:var(--color-subtle);">
+      🔒 Secure payment via Stripe · Your card details never touch our servers
+    </p>
+  </div>
+
+</div>
+{% endblock %}

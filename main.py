@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from database import Base, engine
@@ -12,6 +13,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AgentEval", lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(public.router)
 app.include_router(client.router)

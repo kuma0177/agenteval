@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentEval · Expert Review</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body style="background:var(--color-surface-2);min-height:100vh;">
+
+<div style="max-width:700px;margin:0 auto;padding:32px 24px 80px;">
+
+  <!-- Header -->
+  <div class="review-header">
+    <span style="font-size:15px;font-weight:700;color:var(--color-near-black);">AgentEval · Expert Review</span>
+    <span style="font-size:13px;color:var(--color-subtle);">Estimated time: 5 minutes</span>
+  </div>
+
+  <!-- Task box -->
+  <div class="card-border" style="margin-bottom:20px;">
+    <p class="eyebrow" style="margin-bottom:8px;">Task</p>
+    <p style="font-size:var(--text-body);color:var(--color-near-black);font-weight:500;line-height:1.5;">{{ trace.outcome }}</p>
+  </div>
+
+  <!-- LLM verdict -->
+  <div style="background:var(--color-white);border-radius:var(--radius-md);padding:24px;border-left:4px solid var(--color-uncertain);margin-bottom:20px;">
+    <p class="eyebrow" style="margin-bottom:12px;">AI Judge Assessment</p>
+    <p style="font-size:var(--text-body);font-weight:700;margin-bottom:8px;">
+      Verdict: UNCERTAIN &nbsp;·&nbsp; Score: {{ (trace.llm_score * 100)|round(0)|int if trace.llm_score else '—' }}%
+    </p>
+    <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.65;margin-bottom:12px;">
+      {{ trace.llm_reasoning or 'No reasoning provided.' }}
+    </p>
+    <p class="fine-print">
+      This case was flagged because the AI was not confident. Human review is the ground truth.
+    </p>
+  </div>
+
+  <!-- Trace display -->
+  <div style="margin-bottom:32px;">
+    <p class="eyebrow" style="margin-bottom:12px;">Full Conversation Trace</p>
+    <div class="trace-display">
+      <pre><code class="language-json">{{ trace.raw_json }}</code></pre>
+    </div>
+  </div>
+
+  <!-- Verdict form -->
+  <div class="card-border">
+    <h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">Your Assessment</h3>
+    <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:20px;">
+      Read the full trace. Was the agent successful?
+    </p>
+
+    <form action="/review/{{ reviewer_token.token }}" method="POST" id="review-form">
+      <input type="hidden" name="verdict" id="verdict-input" required>
+
+      <div class="verdict-buttons" style="margin-bottom:20px;">
+        <button type="button" class="btn-pass" id="btn-pass" onclick="selectVerdict('PASS', this)">
+          ✓ PASS — Task completed
+        </button>
+        <button type="button" class="btn-fail-v" id="btn-fail" onclick="selectVerdict('FAIL', this)">
+          ✗ FAIL — Task not completed
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes <span style="font-weight:400;color:var(--color-subtle);">(optional)</span></label>
+        <textarea id="notes" name="notes" class="mono" style="height:100px;" placeholder="What specifically failed? Which step went wrong?"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-full" style="background:var(--color-near-black);color:white;font-size:17px;padding:16px;" id="submit-review">
+        Submit My Verdict
+      </button>
+
+      <p class="fine-print" style="margin-top:12px;text-align:center;">
+        Your verdict is final. You have signed an NDA.
+      </p>
+    </form>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer onload="hljs.highlightAll()"></script>
+<script>
+function selectVerdict(v, btn) {
+  document.getElementById('verdict-input').value = v;
+  document.getElementById('btn-pass').classList.remove('selected');
+  document.getElementById('btn-fail').classList.remove('selected');
+  btn.classList.add('selected');
+}
+
+document.getElementById('review-form').addEventListener('submit', function(e) {
+  if (!document.getElementById('verdict-input').value) {
+    e.preventDefault();
+    alert('Please select PASS or FAIL before submitting.');
+  }
+});
+</script>
+
+</body>
+</html>

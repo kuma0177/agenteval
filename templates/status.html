@@ -1,0 +1,54 @@
+{% extends "conversion_base.html" %}
+
+{% block head %}<title>AgentEval — Evaluation in Progress</title>{% endblock %}
+{% block step_indicator %}Step 3 of 3: Evaluation in Progress{% endblock %}
+{% block progress %}100{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;margin:0 auto;padding:0 24px;text-align:center;">
+
+  <!-- Checkmark -->
+  <div style="width:64px;height:64px;background:var(--color-pass-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:28px;">
+    ✓
+  </div>
+
+  <h1 class="text-h1" style="margin-bottom:20px;">Traces received. We're on it.</h1>
+  <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.65;margin-bottom:56px;">
+    We received <strong>{{ trace_count }}</strong> trace{{ 's' if trace_count != 1 else '' }} for evaluation. Your report will be ready within 5 business days. We'll email you at <strong>{{ job.contact_email }}</strong> when it's done.
+  </p>
+
+  <!-- Timeline -->
+  <div class="timeline" style="text-align:left;margin-bottom:48px;">
+    <div class="timeline-step">
+      <div class="timeline-dot dot-done">✓</div>
+      <div class="timeline-label" style="color:var(--color-pass);font-weight:600;">Payment received</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot dot-done">✓</div>
+      <div class="timeline-label" style="color:var(--color-pass);font-weight:600;">Traces submitted</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot dot-active">●</div>
+      <div class="timeline-label" style="color:var(--color-accent);font-weight:600;">Evaluation in progress</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot dot-todo">○</div>
+      <div class="timeline-label" style="color:var(--color-subtle);">Report delivered</div>
+    </div>
+  </div>
+
+  <!-- Debrief CTA card -->
+  <div style="border:1.5px solid var(--color-accent);background:#f0f6ff;border-radius:var(--radius-lg);padding:32px;margin-bottom:48px;text-align:left;">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:10px;">Book your debrief call now</h3>
+    <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:20px;line-height:1.6;">
+      Your 45-minute debrief is included. Hold the time while you're thinking about it.
+    </p>
+    <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary">Schedule Debrief →</a>
+  </div>
+
+  <p style="font-size:var(--text-label);color:var(--color-subtle);">
+    Questions? Email <a href="mailto:hello@agenteval.com">hello@agenteval.com</a> — we reply within 4 hours.
+  </p>
+
+</div>
+{% endblock %}
