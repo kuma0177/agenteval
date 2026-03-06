@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic-settings
+python-multipart
+anthropic
+weasyprint
+stripe
+requests
+jinja2
+python-dotenv
+aiofiles
+python-jose
