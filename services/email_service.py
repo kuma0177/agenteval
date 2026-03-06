@@ -5,6 +5,9 @@ from config import settings
 
 def send_email(to: str, subject: str, html: str) -> bool:
     """Send an email via the Resend API. Returns True on success."""
+    if not settings.RESEND_API_KEY or not settings.RESEND_FROM_EMAIL:
+        print(f"[email] SKIPPED — RESEND_API_KEY or RESEND_FROM_EMAIL not set. Would send to: {to}")
+        return False
     response = requests.post(
         "https://api.resend.com/emails",
         headers={
@@ -18,13 +21,17 @@ def send_email(to: str, subject: str, html: str) -> bool:
             "html": html,
         },
     )
-    return response.status_code == 200
+    if response.status_code not in (200, 201):
+        print(f"[email] FAILED ({response.status_code}): {response.text[:200]}")
+        return False
+    return True
 
 
 # ── Lead / sample report email ────────────────────────────────────────────────
 
 def send_sample_report_email(email: str, company: str) -> bool:
     calendly = settings.CALENDLY_URL or "#"
+    sample_url = f"{settings.BASE_URL}/static/sample-report.pdf"
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;line-height:1.6;">
       <h2 style="color:#2e86de;margin-bottom:4px;">Here's what an AgentEval report looks like.</h2>
@@ -104,8 +111,10 @@ def send_sample_report_email(email: str, company: str) -> bool:
 
       <!-- CTA -->
       <div style="text-align:center;padding:24px 0;">
-        <p style="font-size:16px;font-weight:600;margin-bottom:16px;">Ready to audit your agent?</p>
-        <a href="{calendly}" style="background:#2e86de;color:#fff;padding:13px 28px;border-radius:7px;text-decoration:none;font-weight:700;font-size:15px;">Book a Free Discovery Call</a>
+        <p style="font-size:16px;font-weight:600;margin-bottom:16px;">Download the full sample report</p>
+        <a href="{sample_url}" style="background:#2e86de;color:#fff;padding:13px 28px;border-radius:7px;text-decoration:none;font-weight:700;font-size:15px;">↓ Download Sample PDF</a>
+        <p style="color:#555;font-size:14px;margin-top:24px;margin-bottom:16px;">Ready to audit your own agent?</p>
+        <a href="{calendly}" style="background:#111;color:#fff;padding:12px 24px;border-radius:7px;text-decoration:none;font-weight:700;font-size:14px;">Book a Free Discovery Call</a>
         <p style="color:#888;font-size:13px;margin-top:20px;">Questions? Reply to this email or write to <a href="mailto:hello@agenteval.com" style="color:#2e86de;">hello@agenteval.com</a></p>
       </div>
 

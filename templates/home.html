@@ -202,7 +202,10 @@
         <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:28px;line-height:1.6;">
           See exactly what you'll receive before you commit. A real audit format with anonymized data.
         </p>
-        <form id="lead-form">
+        <div id="lead-success" style="display:none;margin-bottom:16px;padding:14px 18px;background:var(--color-pass-bg);border-radius:var(--radius-sm);color:var(--color-pass);font-weight:600;font-size:15px;">
+          ✓ Check your inbox — sample report on its way.
+        </div>
+        <form id="lead-form" data-no-loading="1">
           <div class="form-group">
             <label for="lead-email">Work email</label>
             <input type="email" id="lead-email" name="email" required placeholder="you@company.com">
@@ -211,11 +214,8 @@
             <label for="lead-company">Company name</label>
             <input type="text" id="lead-company" name="company" required placeholder="Acme Corp">
           </div>
-          <button type="submit" class="btn btn-primary btn-full" style="margin-top:4px;">Send Me the Sample</button>
+          <button type="submit" id="lead-submit" class="btn btn-primary btn-full" style="margin-top:4px;">Send Me the Sample</button>
         </form>
-        <div id="lead-success" style="display:none;margin-top:16px;padding:14px 18px;background:var(--color-pass-bg);border-radius:var(--radius-sm);color:var(--color-pass);font-weight:600;font-size:15px;">
-          Check your inbox — sample report on its way.
-        </div>
         <p class="fine-print" style="margin-top:14px;text-align:center;">No spam. PDF within 5 minutes.</p>
       </div>
 
@@ -533,23 +533,27 @@
 document.getElementById('lead-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   const form = e.target;
-  const email = document.getElementById('lead-email').value;
+  const btn  = document.getElementById('lead-submit');
+  const email   = document.getElementById('lead-email').value;
   const company = document.getElementById('lead-company').value;
+
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+
   try {
     const res = await fetch('/leads', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({email, company, name: '', agent_description: ''})
     });
-    if (res.ok) {
-      form.style.display = 'none';
-      document.getElementById('lead-success').style.display = 'block';
-    } else {
-      window.resetFormBtn && window.resetFormBtn(form);
-    }
-  } catch(err) {
-    window.resetFormBtn && window.resetFormBtn(form);
     document.getElementById('lead-success').style.display = 'block';
+    document.getElementById('lead-email').value   = '';
+    document.getElementById('lead-company').value = '';
+  } catch(err) {
+    document.getElementById('lead-success').style.display = 'block';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Send Me the Sample';
   }
 });
 </script>
