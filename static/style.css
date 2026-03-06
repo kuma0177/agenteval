@@ -86,7 +86,7 @@ img { max-width: 100%; display: block; }
 }
 
 .nav-logo {
-  font-size: 17px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--color-near-black);
   text-decoration: none;
@@ -100,7 +100,7 @@ img { max-width: 100%; display: block; }
 }
 
 .nav-links a {
-  font-size: 14px;
+  font-size: 19px;
   color: var(--color-near-black);
   text-decoration: none;
   transition: color var(--transition-fast);
