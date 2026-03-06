@@ -1,0 +1,101 @@
+{% extends "admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+
+{% set status_pill = {
+  'INTAKE':     'pill-gray',
+  'PAID':       'pill-blue',
+  'SUBMITTED':  'pill-yellow',
+  'EVALUATING': 'pill-orange',
+  'REVIEW':     'pill-purple',
+  'COMPLETE':   'pill-green',
+} %}
+
+<div class="a-page-header">
+  <div>
+    <div class="a-page-title">Dashboard</div>
+    <div class="a-page-sub">All evaluation jobs</div>
+  </div>
+  <a href="/admin/new" class="abtn abtn-primary abtn-lg">+ New Job</a>
+</div>
+
+<!-- Metric cards -->
+<div class="a-metrics">
+  <div class="a-metric">
+    <div class="a-metric-num">{{ total }}</div>
+    <div class="a-metric-label">Total Jobs</div>
+  </div>
+  <div class="a-metric">
+    <div class="a-metric-num">{{ paid }}</div>
+    <div class="a-metric-label">Paid</div>
+  </div>
+  <div class="a-metric">
+    <div class="a-metric-num">{{ in_eval }}</div>
+    <div class="a-metric-label">In Evaluation</div>
+  </div>
+  <div class="a-metric">
+    <div class="a-metric-num">{{ complete }}</div>
+    <div class="a-metric-label">Complete</div>
+  </div>
+  <div class="a-metric">
+    <div class="a-metric-num" style="color:#15803d;">${{ "{:,}".format(revenue) }}</div>
+    <div class="a-metric-label">Revenue</div>
+  </div>
+</div>
+
+<!-- Jobs table -->
+<div class="a-card" style="padding:0;overflow:hidden;">
+  {% if jobs %}
+  <table class="a-table">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Contact</th>
+        <th>Status</th>
+        <th># Traces</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td>
+          <div style="font-weight:600;color:#111827;">{{ job.company_name }}</div>
+        </td>
+        <td>
+          <div style="color:#374151;">{{ job.contact_name }}</div>
+          <div style="font-size:12px;color:#9ca3af;">{{ job.contact_email }}</div>
+        </td>
+        <td>
+          <span class="pill {{ status_pill.get(job.status.value, 'pill-gray') }}">
+            {{ job.status.value }}
+          </span>
+        </td>
+        <td style="color:#374151;">{{ trace_counts.get(job.id, 0) }}</td>
+        <td style="color:#6b7280;font-size:13px;white-space:nowrap;">
+          {{ job.created_at.strftime('%b %d, %Y') if job.created_at else '—' }}
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <a href="/admin/job/{{ job.id }}" class="abtn abtn-secondary abtn-sm">View</a>
+            <button
+              class="abtn abtn-secondary abtn-sm"
+              onclick="copyToClipboard('{{ config.BASE_URL }}/intake/{{ job.access_token }}', 'Intake link copied!')"
+            >Copy Intake Link</button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="a-empty">
+    No jobs yet. <a href="/admin/new">Create your first job →</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

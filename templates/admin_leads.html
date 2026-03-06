@@ -1,0 +1,62 @@
+{% extends "admin_base.html" %}
+{% block title %}Leads{% endblock %}
+{% block nav_leads %}active{% endblock %}
+
+{% block content %}
+
+<div class="a-page-header">
+  <div>
+    <div class="a-page-title">Leads</div>
+    <div class="a-page-sub">Form submissions from the marketing site</div>
+  </div>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 16px;font-size:14px;color:#15803d;font-weight:500;">
+    {{ leads|length }} lead{{ 's' if leads|length != 1 else '' }}
+  </div>
+</div>
+
+<div class="a-card" style="padding:0;overflow:hidden;">
+  {% if leads %}
+  <table class="a-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Company</th>
+        <th>Agent Description</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr>
+        <td style="font-weight:600;white-space:nowrap;">{{ lead.name or '—' }}</td>
+        <td>
+          <a href="mailto:{{ lead.email }}" style="color:#0066cc;font-size:13px;">{{ lead.email or '—' }}</a>
+        </td>
+        <td style="font-size:13px;color:#374151;">{{ lead.company or '—' }}</td>
+        <td style="max-width:280px;">
+          <span style="font-size:13px;color:#6b7280;">
+            {{ lead.agent_description[:80] if lead.agent_description else '—' }}{% if lead.agent_description and lead.agent_description|length > 80 %}…{% endif %}
+          </span>
+        </td>
+        <td style="font-size:13px;color:#9ca3af;white-space:nowrap;">
+          {{ lead.created_at.strftime('%b %d, %Y') if lead.created_at else '—' }}
+        </td>
+        <td>
+          <a href="/admin/new?prefill={{ lead.id }}" class="abtn abtn-primary abtn-sm">
+            Convert to Job →
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="a-empty">
+    No leads yet. They'll appear here when someone fills out the contact form on your site.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

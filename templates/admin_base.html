@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} — AgentEval</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top nav ── */
+    .a-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff; border-bottom: 1px solid #e5e7eb;
+      height: 52px; display: flex; align-items: center;
+      padding: 0 24px; gap: 24px;
+    }
+    .a-nav-logo {
+      font-size: 16px; font-weight: 700; color: #111827;
+      text-decoration: none; white-space: nowrap; letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .a-nav-logo svg { flex-shrink: 0; }
+    .a-nav-links { display: flex; gap: 4px; flex: 1; }
+    .a-nav-link {
+      padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;
+      color: #6b7280; text-decoration: none; transition: all 0.15s;
+    }
+    .a-nav-link:hover { background: #f3f4f6; color: #111827; text-decoration: none; }
+    .a-nav-link.active { background: #eff6ff; color: #0066cc; }
+    .a-nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .a-nav-badge {
+      font-size: 11px; font-weight: 600; background: #f3f4f6; color: #6b7280;
+      padding: 3px 8px; border-radius: 999px; border: 1px solid #e5e7eb;
+    }
+
+    /* ── Layout ── */
+    .a-wrap { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ── Page header ── */
+    .a-page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .a-page-title { font-size: 22px; font-weight: 700; color: #111827; }
+    .a-page-sub { font-size: 14px; color: #6b7280; margin-top: 2px; }
+
+    /* ── Metric cards ── */
+    .a-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
+    .a-metric {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .a-metric-num { font-size: 28px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
+    .a-metric-label { font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ── Card ── */
+    .a-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 22px; margin-bottom: 20px; }
+    .a-card-title { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* ── Table ── */
+    .a-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .a-table th {
+      background: #f9fafb; padding: 9px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid #e5e7eb; white-space: nowrap;
+    }
+    .a-table td { padding: 11px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    .a-table tbody tr:last-child td { border-bottom: none; }
+    .a-table tbody tr:hover td { background: #fafafa; }
+    .row-pass   { background: #f0fdf4 !important; }
+    .row-fail   { background: #fef2f2 !important; }
+    .row-review { background: #fefce8 !important; }
+    .row-detail td { background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+
+    /* ── Status pills ── */
+    .pill {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .pill-gray   { background: #f3f4f6; color: #6b7280; }
+    .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+    .pill-yellow { background: #fef9c3; color: #92400e; }
+    .pill-orange { background: #ffedd5; color: #c2410c; }
+    .pill-purple { background: #f3e8ff; color: #6b21a8; }
+    .pill-green  { background: #dcfce7; color: #15803d; }
+    .pill-red    { background: #fee2e2; color: #dc2626; }
+    .pill-teal   { background: #ccfbf1; color: #0f766e; }
+
+    /* ── Buttons ── */
+    .abtn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 13px; border-radius: 7px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: 1px solid transparent; text-decoration: none;
+      transition: all 0.15s; white-space: nowrap; font-family: inherit; line-height: 1.4;
+    }
+    .abtn-primary { background: #0066cc; color: #fff; border-color: #0066cc; }
+    .abtn-primary:hover { background: #0052a3; border-color: #0052a3; color: #fff; text-decoration: none; }
+    .abtn-secondary { background: #fff; color: #374151; border-color: #d1d5db; }
+    .abtn-secondary:hover { background: #f9fafb; text-decoration: none; color: #374151; }
+    .abtn-danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .abtn-danger:hover { background: #fee2e2; text-decoration: none; color: #dc2626; }
+    .abtn-success { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .abtn-success:hover { background: #dcfce7; text-decoration: none; color: #15803d; }
+    .abtn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .abtn-lg { padding: 10px 20px; font-size: 14px; }
+
+    /* ── Flash ── */
+    .a-flash {
+      padding: 11px 16px; border-radius: 8px; margin-bottom: 20px;
+      font-size: 14px; font-weight: 500; display: flex;
+      align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .a-flash-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .a-flash-error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .a-flash-close { cursor: pointer; background: none; border: none; font-size: 16px; color: inherit; opacity: 0.7; line-height: 1; padding: 0; }
+
+    /* ── Forms ── */
+    .a-form-group { margin-bottom: 16px; }
+    .a-form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .a-form-group input,
+    .a-form-group textarea,
+    .a-form-group select {
+      width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 7px;
+      font-size: 14px; font-family: inherit; background: #fff; color: #111827;
+      transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+    }
+    .a-form-group input:focus,
+    .a-form-group textarea:focus,
+    .a-form-group select:focus {
+      border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+    }
+    .a-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .a-form-hint { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+
+    /* ── Horizontal timeline ── */
+    .h-timeline { display: flex; align-items: flex-start; }
+    .h-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .h-step-row { display: flex; align-items: center; width: 100%; }
+    .h-dot {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; z-index: 1;
+    }
+    .h-dot-done   { background: #0066cc; color: #fff; }
+    .h-dot-active { background: #0066cc; color: #fff; box-shadow: 0 0 0 4px rgba(0,102,204,0.2); }
+    .h-dot-todo   { background: #f3f4f6; color: #9ca3af; border: 2px solid #e5e7eb; }
+    .h-line { flex: 1; height: 2px; }
+    .h-line-done   { background: #0066cc; }
+    .h-line-todo   { background: #e5e7eb; }
+    .h-step-label { font-size: 11px; font-weight: 500; margin-top: 6px; text-align: center; color: #6b7280; }
+    .h-step-label.active { color: #0066cc; font-weight: 700; }
+    .h-step-label.done   { color: #374151; }
+
+    /* ── Trace detail expand ── */
+    .trace-json {
+      background: #1c1c1e; color: #e5e7eb; border-radius: 8px;
+      padding: 14px; font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 12px; line-height: 1.6; max-height: 320px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-all; margin-top: 10px;
+    }
+    .trace-expand-inner { padding: 14px; }
+    .trace-field { margin-bottom: 10px; }
+    .trace-field-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .trace-field-value { font-size: 13px; color: #111827; line-height: 1.5; }
+
+    /* ── Reviewer inline form ── */
+    .reviewer-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .reviewer-row input {
+      padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 13px; flex: 1; font-family: inherit; outline: none;
+    }
+    .reviewer-row input:focus { border-color: #0066cc; }
+
+    /* ── Misc ── */
+    .a-divider { height: 1px; background: #e5e7eb; margin: 20px 0; }
+    .a-section-title { font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .a-empty { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .text-mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; }
+    .cursor-pointer { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<nav class="a-nav">
+  <a href="/admin" class="a-nav-logo">
+    <svg width="18" height="18" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 1 C11 1 12.2 7.5 11 11 C9.8 14.5 11 21 11 21" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
+      <path d="M1 11 C1 11 7.5 9.8 11 11 C14.5 12.2 21 11 21 11" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17.2 4.8 C17.2 4.8 14.1 8.5 11 11 C7.9 13.5 4.8 17.2 4.8 17.2" stroke="#0066cc" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+      <path d="M4.8 4.8 C4.8 4.8 8.5 7.9 11 11 C13.5 14.1 17.2 17.2 17.2 17.2" stroke="#0066cc" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+      <circle cx="11" cy="11" r="2" fill="#0066cc"/>
+    </svg>
+    AgentEval Admin
+  </a>
+  <div class="a-nav-links">
+    <a href="/admin" class="a-nav-link {% block nav_dashboard %}{% endblock %}">Dashboard</a>
+    <a href="/admin/leads" class="a-nav-link {% block nav_leads %}{% endblock %}">Leads</a>
+  </div>
+  <div class="a-nav-right">
+    <a href="/" target="_blank" class="a-nav-badge">View Site ↗</a>
+  </div>
+</nav>
+
+<div class="a-wrap">
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  // Auto-dismiss flash messages
+  document.addEventListener('DOMContentLoaded', () => {
+    const flashes = document.querySelectorAll('.a-flash');
+    flashes.forEach(el => {
+      setTimeout(() => el.remove(), 4000);
+    });
+  });
+
+  function dismissFlash(btn) {
+    btn.closest('.a-flash').remove();
+  }
+
+  function copyToClipboard(text, label) {
+    navigator.clipboard.writeText(text).then(() => {
+      showClientFlash(label || 'Copied to clipboard!', 'success');
+    });
+  }
+
+  function showClientFlash(msg, type) {
+    const existing = document.querySelector('.a-flash-client');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.className = `a-flash a-flash-${type} a-flash-client`;
+    div.style.cssText = 'position:fixed;top:64px;right:20px;min-width:260px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.12)';
+    div.innerHTML = `<span>${msg}</span><button class="a-flash-close" onclick="this.closest('.a-flash-client').remove()">×</button>`;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+  }
+
+  function toggleTrace(id) {
+    const row = document.getElementById('trace-detail-' + id);
+    const btn = document.getElementById('trace-toggle-' + id);
+    if (row.style.display === 'none' || !row.style.display) {
+      row.style.display = 'table-row';
+      btn.textContent = '▲';
+    } else {
+      row.style.display = 'none';
+      btn.textContent = '▼';
+    }
+  }
+</script>
+
+</body>
+</html>

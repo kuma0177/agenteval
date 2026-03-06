@@ -1,0 +1,88 @@
+{% extends "admin_base.html" %}
+{% block title %}New Job{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<div class="a-page-header">
+  <div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:4px;">
+      <a href="/admin" style="color:#6b7280;">← Dashboard</a>
+    </div>
+    <div class="a-page-title">Create New Job</div>
+    <div class="a-page-sub">
+      {% if lead %}Pre-filled from lead: {{ lead.name }} ({{ lead.email }}){% else %}Manually create an evaluation job{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="a-card" style="max-width:680px;">
+  <form method="post" action="/admin/new">
+
+    <div class="a-form-row">
+      <div class="a-form-group">
+        <label for="company_name">Company Name *</label>
+        <input
+          type="text" id="company_name" name="company_name" required
+          value="{{ lead.company if lead else '' }}"
+          placeholder="Acme Corp"
+        >
+      </div>
+      <div class="a-form-group">
+        <label for="contact_name">Contact Name *</label>
+        <input
+          type="text" id="contact_name" name="contact_name" required
+          value="{{ lead.name if lead else '' }}"
+          placeholder="Jane Smith"
+        >
+      </div>
+    </div>
+
+    <div class="a-form-group">
+      <label for="contact_email">Contact Email *</label>
+      <input
+        type="email" id="contact_email" name="contact_email" required
+        value="{{ lead.email if lead else '' }}"
+        placeholder="jane@acmecorp.com"
+      >
+    </div>
+
+    <div class="a-form-group">
+      <label for="agent_description">Agent Description *</label>
+      <textarea
+        id="agent_description" name="agent_description" rows="4" required
+        placeholder="Describe what the agent does, its intended use case, and any relevant context for the evaluator…"
+      >{{ lead.agent_description if lead else '' }}</textarea>
+      <div class="a-form-hint">This appears in the intake form and the PDF report.</div>
+    </div>
+
+    <div class="a-form-group">
+      <label>Audit Type</label>
+      <div style="display:flex;gap:16px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;font-size:14px;">
+          <input type="radio" name="audit_type" value="starter" checked style="width:auto;">
+          <span>Starter &mdash; <strong>$3,500</strong> &mdash; Up to 50 traces</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;font-size:14px;">
+          <input type="radio" name="audit_type" value="deep" style="width:auto;">
+          <span>Deep &mdash; <strong>$7,500</strong> &mdash; Up to 200 traces</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="a-form-group">
+      <label for="notes">Internal Notes <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+      <textarea
+        id="notes" name="notes" rows="3"
+        placeholder="Notes visible only to operators…"
+      ></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button type="submit" class="abtn abtn-primary abtn-lg">Create Job</button>
+      <a href="/admin" class="abtn abtn-secondary abtn-lg">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
