@@ -1,15 +1,65 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, Request, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import ReviewerToken, Trace, Job, JobStatus, EvalStatus
+from models import ReviewerToken, Trace, Job, JobStatus, EvalStatus, ReviewerProfile
 from config import settings
 from services.email_service import send_email
 
 router = APIRouter(tags=["reviewer"])
 templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/reviewers/apply", response_class=HTMLResponse)
+def reviewer_apply_form(request: Request):
+    return templates.TemplateResponse("reviewer_apply.html", {
+        "request": request, "config": settings, "submitted": False,
+    })
+
+
+@router.post("/reviewers/apply", response_class=HTMLResponse)
+def reviewer_apply_submit(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(...),
+    domain_expertise: str = Form(...),
+    years_experience: int = Form(...),
+    linkedin_url: str = Form(""),
+    availability: str = Form(""),
+    bio: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    existing = db.query(ReviewerProfile).filter(ReviewerProfile.email == email).first()
+    if not existing:
+        profile = ReviewerProfile(
+            name=name,
+            email=email,
+            domain_expertise=domain_expertise,
+            years_experience=years_experience,
+            linkedin_url=linkedin_url or None,
+            availability=availability or None,
+            bio=bio,
+            status="PENDING",
+        )
+        db.add(profile)
+        db.commit()
+
+        # Notify operator
+        send_email(
+            to=settings.OPERATOR_EMAIL,
+            subject=f"New reviewer application: {name} ({domain_expertise})",
+            html=(
+                f"<p><strong>{name}</strong> ({email}) applied as a reviewer.</p>"
+                f"<p>Domain: {domain_expertise} · {years_experience} years</p>"
+                f"<p><a href='{settings.BASE_URL}/admin/reviewers'>Review in admin</a></p>"
+            ),
+        )
+
+    return templates.TemplateResponse("reviewer_apply.html", {
+        "request": request, "config": settings, "submitted": True,
+    })
 
 
 @router.get("/review/{token}", response_class=HTMLResponse)

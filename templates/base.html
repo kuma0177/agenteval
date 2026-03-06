@@ -31,7 +31,7 @@
       <li><a href="/#pricing">Pricing</a></li>
       <li><a href="/#faq">FAQ</a></li>
     </ul>
-    <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary nav-cta" style="padding:9px 20px;font-size:14px;">Book a Call</a>
+    <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-cta" style="padding:9px 20px;font-size:14px;">Book a Call</a>
     <button class="hamburger" id="hamburger" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -43,18 +43,73 @@
   <a href="/#sample-report">What You Get</a>
   <a href="/#pricing">Pricing</a>
   <a href="/#faq">FAQ</a>
-  <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary" style="text-align:center;">Book a Call</a>
+  <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-align:center;">Book a Call</a>
 </div>
 
 <script>
   const ham = document.getElementById('hamburger');
   const menu = document.getElementById('mobile-menu');
-  ham.addEventListener('click', () => menu.classList.toggle('open'));
+  ham.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && !ham.contains(e.target)) menu.classList.remove('open');
+  });
 </script>
+
+<!-- Flash messages (driven by ?msg= or ?error= in URL) -->
+<div id="flash-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 24px;font-size:14px;font-weight:600;text-align:center;animation:fadeOutFlash 0.5s ease 3.5s forwards;"></div>
+<style>
+  @keyframes fadeOutFlash { to { opacity:0; pointer-events:none; } }
+</style>
 
 <main>
   {% block content %}{% endblock %}
 </main>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var msg   = params.get('msg');
+  var error = params.get('error');
+  var bar   = document.getElementById('flash-bar');
+  if (msg || error) {
+    bar.textContent  = msg || error;
+    bar.style.display = 'block';
+    bar.style.background = msg ? '#dcfce7' : '#fee2e2';
+    bar.style.color      = msg ? '#15803d' : '#dc2626';
+    bar.style.borderBottom = msg ? '1px solid #bbf7d0' : '1px solid #fecaca';
+    setTimeout(function() { bar.style.display = 'none'; }, 4000);
+  }
+
+  // Form loading states — applied to all forms automatically
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (form.dataset.noLoading) return;
+    var btn = form.querySelector('[type=submit]');
+    if (btn && !btn.disabled) {
+      btn._origText = btn.textContent || btn.value;
+      btn._origHtml = btn.innerHTML;
+      btn.textContent = btn.dataset.loadingText || 'Processing…';
+      btn.disabled = true;
+    }
+  }, true);
+
+  // Re-enable on back-forward cache restore
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      document.querySelectorAll('[type=submit][disabled]').forEach(function(btn) {
+        btn.disabled = false;
+        if (btn._origText) btn.textContent = btn._origText;
+      });
+    }
+  });
+
+  // Expose helper so AJAX forms can re-enable on error
+  window.resetFormBtn = function(form) {
+    var btn = form && form.querySelector('[type=submit]');
+    if (btn) { btn.disabled = false; if (btn._origText) btn.textContent = btn._origText; }
+  };
+})();
+</script>
 
 <footer class="footer">
   <div class="container">

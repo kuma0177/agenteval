@@ -215,6 +215,7 @@
         <th>Task</th>
         <th>LLM Verdict</th>
         <th>Score</th>
+        <th>Weakest Dim.</th>
         <th>Human Verdict</th>
         <th>Status</th>
       </tr>
@@ -222,12 +223,27 @@
     <tbody>
       {% for trace in traces %}
       {% set es = trace.eval_status.value if trace.eval_status else 'PENDING' %}
+      {% set overall_score = trace.llm_score_overall if trace.llm_score_overall is not none else trace.llm_score %}
+      {% set dim_map = [
+        ('Task', trace.score_task_completion),
+        ('Tools', trace.score_tool_selection),
+        ('Reasoning', trace.score_reasoning),
+        ('Policy', trace.score_policy_compliance),
+        ('Halluc.', trace.score_hallucination_risk),
+      ] %}
+      {% set ns = namespace(weakest_name='—', weakest_val=2.0) %}
+      {% for dname, dval in dim_map %}
+        {% if dval is not none and dval < ns.weakest_val %}
+          {% set ns.weakest_val = dval %}
+          {% set ns.weakest_name = dname %}
+        {% endif %}
+      {% endfor %}
       <tr class="{{ eval_row.get(es, '') }} cursor-pointer" onclick="toggleTrace('{{ trace.id }}')">
         <td style="text-align:center;">
           <span id="trace-toggle-{{ trace.id }}" style="color:#9ca3af;font-size:12px;">▼</span>
         </td>
         <td style="color:#6b7280;font-size:13px;">{{ loop.index }}</td>
-        <td style="max-width:320px;">
+        <td style="max-width:280px;">
           <span style="font-size:13px;color:#111827;">{{ trace.outcome[:70] }}{% if trace.outcome|length > 70 %}…{% endif %}</span>
         </td>
         <td>
@@ -238,7 +254,14 @@
           {% else %}—{% endif %}
         </td>
         <td style="font-size:13px;color:#374151;">
-          {{ "%.2f"|format(trace.llm_score) if trace.llm_score is not none else '—' }}
+          {{ "%.0f%%"|format(overall_score * 100) if overall_score is not none else '—' }}
+        </td>
+        <td style="font-size:12px;color:#6b7280;">
+          {% if ns.weakest_name != '—' %}
+          <span title="{{ '%.0f%%'|format(ns.weakest_val * 100) }}">
+            {{ ns.weakest_name }} <span style="color:#dc2626;">{{ "%.0f%%"|format(ns.weakest_val * 100) }}</span>
+          </span>
+          {% else %}—{% endif %}
         </td>
         <td>
           {% if trace.human_verdict %}
@@ -260,6 +283,39 @@
               <div class="trace-field-value">{{ trace.llm_reasoning }}</div>
             </div>
             {% endif %}
+
+            {% if trace.score_task_completion is not none or trace.score_tool_selection is not none %}
+            <div class="trace-field">
+              <div class="trace-field-label">Dimension Scores</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-top:6px;">
+                {% for dlabel, dval in [
+                  ('Task Completion',    trace.score_task_completion),
+                  ('Tool Selection',     trace.score_tool_selection),
+                  ('Reasoning',         trace.score_reasoning),
+                  ('Policy Compliance', trace.score_policy_compliance),
+                  ('Hallucination Risk',trace.score_hallucination_risk),
+                ] %}
+                {% if dval is not none %}
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                    <span style="color:#6b7280;font-weight:600;">{{ dlabel }}</span>
+                    <span style="font-weight:700;color:{{ '#dc2626' if dval < 0.5 else ('#d97706' if dval < 0.75 else '#15803d') }};">
+                      {{ "%.0f%%"|format(dval * 100) }}
+                    </span>
+                  </div>
+                  <div style="background:#e5e7eb;border-radius:3px;height:7px;">
+                    <div style="background:{{ '#dc2626' if dval < 0.5 else ('#d97706' if dval < 0.75 else '#0066cc') }};width:{{ (dval * 100)|int }}%;height:7px;border-radius:3px;"></div>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              {% if trace.dim_notes %}
+              <div style="margin-top:10px;font-size:12px;color:#6b7280;font-style:italic;">{{ trace.dim_notes }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+
             {% if trace.failure_category %}
             <div class="trace-field">
               <div class="trace-field-label">Failure Category</div>

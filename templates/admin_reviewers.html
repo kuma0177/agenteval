@@ -1,0 +1,108 @@
+{% extends "admin_base.html" %}
+{% block title %}Reviewers{% endblock %}
+{% block nav_reviewers %}active{% endblock %}
+
+{% block content %}
+
+{% if flash_msg %}
+<div class="a-flash a-flash-{{ flash_type }}">
+  <span>{{ flash_msg }}</span>
+  <button class="a-flash-close" onclick="dismissFlash(this)">×</button>
+</div>
+{% endif %}
+
+<div class="a-page-header">
+  <div>
+    <div class="a-page-title">Reviewer Network</div>
+    <div class="a-page-sub">{{ profiles|length }} application{{ 's' if profiles|length != 1 }}</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+  {% set pending  = profiles|selectattr('status','eq','PENDING')|list %}
+  {% set approved = profiles|selectattr('status','eq','APPROVED')|list %}
+  {% set rejected = profiles|selectattr('status','eq','REJECTED')|list %}
+  <div class="a-metric"><div class="a-metric-num">{{ profiles|length }}</div><div class="a-metric-label">Total</div></div>
+  <div class="a-metric"><div class="a-metric-num" style="color:#92400e;">{{ pending|length }}</div><div class="a-metric-label">Pending</div></div>
+  <div class="a-metric"><div class="a-metric-num" style="color:#15803d;">{{ approved|length }}</div><div class="a-metric-label">Approved</div></div>
+  <div class="a-metric"><div class="a-metric-num" style="color:#dc2626;">{{ rejected|length }}</div><div class="a-metric-label">Rejected</div></div>
+</div>
+
+<div class="a-card" style="padding:0;overflow:hidden;">
+  <div style="padding:18px 22px;border-bottom:1px solid #e5e7eb;">
+    <div class="a-card-title" style="margin-bottom:0;">Applications</div>
+  </div>
+  {% if profiles %}
+  <table class="a-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Domain</th>
+        <th>Experience</th>
+        <th>Availability</th>
+        <th>Applied</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in profiles %}
+      <tr>
+        <td style="font-weight:600;">
+          {{ p.name }}
+          {% if p.linkedin_url %}
+          <a href="{{ p.linkedin_url }}" target="_blank" rel="noopener noreferrer" style="font-size:11px;margin-left:6px;color:#6b7280;">↗ LinkedIn</a>
+          {% endif %}
+        </td>
+        <td style="font-size:13px;">{{ p.email }}</td>
+        <td><span class="pill pill-blue" style="font-size:11px;">{{ p.domain_expertise }}</span></td>
+        <td style="font-size:13px;">{{ p.years_experience or '—' }}y</td>
+        <td style="font-size:13px;color:#6b7280;">{{ p.availability or '—' }}</td>
+        <td style="font-size:13px;color:#6b7280;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else '—' }}</td>
+        <td>
+          <span class="pill {{ 'pill-yellow' if p.status == 'PENDING' else ('pill-green' if p.status == 'APPROVED' else 'pill-red') }}">
+            {{ p.status }}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            {% if p.status == 'PENDING' %}
+            <form method="post" action="/admin/reviewers/{{ p.id }}/approve" style="display:inline;">
+              <button type="submit" class="abtn abtn-success abtn-sm">Approve</button>
+            </form>
+            <form method="post" action="/admin/reviewers/{{ p.id }}/reject" style="display:inline;">
+              <button type="submit" class="abtn abtn-danger abtn-sm">Reject</button>
+            </form>
+            {% elif p.status == 'APPROVED' %}
+            <form method="post" action="/admin/reviewers/{{ p.id }}/reject" style="display:inline;">
+              <button type="submit" class="abtn abtn-danger abtn-sm">Revoke</button>
+            </form>
+            {% else %}
+            <form method="post" action="/admin/reviewers/{{ p.id }}/approve" style="display:inline;">
+              <button type="submit" class="abtn abtn-success abtn-sm">Re-approve</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% if p.bio %}
+      <tr>
+        <td colspan="8" style="background:#f9fafb;padding:8px 14px 14px;">
+          <div style="font-size:12px;color:#374151;line-height:1.6;max-width:700px;">
+            <strong style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">Bio:</strong>
+            {{ p.bio }}
+          </div>
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="a-empty">No reviewer applications yet. Share <strong>/reviewers/apply</strong> to get started.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

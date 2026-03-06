@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Apply as a Reviewer — AgentEval</title>
+<meta name="description" content="Join the AgentEval expert reviewer network. Earn per review, work async.">
+{% endblock %}
+
+{% block content %}
+<section style="background:var(--color-surface-2);padding:80px 0 120px;">
+  <div style="max-width:640px;margin:0 auto;padding:0 24px;">
+
+    <div style="text-align:center;margin-bottom:48px;">
+      <p class="eyebrow" style="margin-bottom:12px;">Expert Reviewer Network</p>
+      <h1 style="font-size:32px;font-weight:800;color:var(--color-near-black);margin-bottom:16px;letter-spacing:-0.02em;">
+        Apply to review AI agent traces
+      </h1>
+      <p style="font-size:var(--text-body-lg);color:var(--color-mid);line-height:1.65;max-width:480px;margin:0 auto;">
+        Earn per review. Work async, from anywhere. We match you to traces in your domain.
+      </p>
+    </div>
+
+    {% if submitted %}
+    <div style="background:var(--color-pass-bg);border:1px solid var(--color-pass);border-radius:var(--radius-md);padding:28px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">✓</div>
+      <h2 style="font-size:22px;font-weight:700;color:var(--color-pass);margin-bottom:8px;">Application received!</h2>
+      <p style="font-size:var(--text-body);color:var(--color-mid);">
+        We'll review your application and follow up within 5 business days.
+        Questions? <a href="mailto:hello@agenteval.com">hello@agenteval.com</a>
+      </p>
+    </div>
+    {% else %}
+    <div class="card" style="padding:40px;">
+      <form method="POST" action="/reviewers/apply">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label for="name">Full name *</label>
+            <input type="text" id="name" name="name" required placeholder="Jane Smith">
+          </div>
+          <div class="form-group">
+            <label for="email">Work email *</label>
+            <input type="email" id="email" name="email" required placeholder="jane@hospital.org">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="domain_expertise">Domain expertise *</label>
+          <select id="domain_expertise" name="domain_expertise" required>
+            <option value="">Select your primary domain…</option>
+            <option value="Healthcare / Clinical">Healthcare / Clinical</option>
+            <option value="Legal / Compliance">Legal / Compliance</option>
+            <option value="Finance / FinTech">Finance / FinTech</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Customer Support">Customer Support</option>
+            <option value="Sales / GTM">Sales / GTM</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label for="years_experience">Years of experience *</label>
+            <input type="number" id="years_experience" name="years_experience" required min="1" max="50" placeholder="8">
+          </div>
+          <div class="form-group">
+            <label for="availability">Availability</label>
+            <select id="availability" name="availability">
+              <option value="">Select…</option>
+              <option value="1-3 hours/week">1–3 hours/week</option>
+              <option value="3-8 hours/week">3–8 hours/week</option>
+              <option value="8+ hours/week">8+ hours/week</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="linkedin_url">LinkedIn URL</label>
+          <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/yourprofile">
+        </div>
+
+        <div class="form-group">
+          <label for="bio">Brief bio *</label>
+          <textarea id="bio" name="bio" required rows="4"
+            placeholder="Describe your background and why you're a good fit to review AI agent traces in your domain…"
+            style="resize:vertical;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" style="font-size:16px;padding:14px;">
+          Submit Application
+        </button>
+        <p class="fine-print" style="margin-top:12px;text-align:center;">
+          We review all applications within 5 business days.
+        </p>
+
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

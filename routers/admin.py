@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 
 from config import settings
 from database import SessionLocal, get_db
-from models import EvalStatus, Job, JobStatus, Lead, ReviewerToken, Trace
+from datetime import datetime
+
+from models import EvalStatus, Job, JobStatus, Lead, ReviewerProfile, ReviewerToken, Trace
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="templates")
@@ -293,3 +295,56 @@ def admin_leads(request: Request, auth: Auth, db: Session = Depends(get_db)):
         "leads":   leads,
         "config":  settings,
     })
+
+
+# ── Reviewer profiles ─────────────────────────────────────────────────────────
+
+@router.get("/reviewers", response_class=HTMLResponse)
+def admin_reviewers(
+    request: Request,
+    auth: Auth,
+    msg: str = None,
+    msg_type: str = "success",
+    db: Session = Depends(get_db),
+):
+    profiles = db.query(ReviewerProfile).order_by(ReviewerProfile.created_at.desc()).all()
+    return templates.TemplateResponse("admin_reviewers.html", {
+        "request":   request,
+        "profiles":  profiles,
+        "flash_msg":  msg,
+        "flash_type": msg_type,
+        "config":    settings,
+    })
+
+
+@router.post("/reviewers/{profile_id}/approve")
+def admin_approve_reviewer(profile_id: str, auth: Auth, db: Session = Depends(get_db)):
+    from services.email_service import send_email
+    profile = db.query(ReviewerProfile).filter(ReviewerProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404)
+    profile.status = "APPROVED"
+    profile.approved_at = datetime.utcnow()
+    db.commit()
+    send_email(
+        to=profile.email,
+        subject="You've been approved as an AgentEval reviewer",
+        html=(
+            f"<p>Hi {profile.name},</p>"
+            f"<p>Congratulations! Your application to join the AgentEval expert reviewer network has been approved.</p>"
+            f"<p>We'll reach out when a trace matching your domain (<strong>{profile.domain_expertise}</strong>) "
+            f"is ready for review. Review assignments come with a unique link — no account needed.</p>"
+            f"<p>— The AgentEval Team &nbsp;|&nbsp; hello@agenteval.com</p>"
+        ),
+    )
+    return _redirect("/admin/reviewers", f"{profile.name} approved — confirmation email sent")
+
+
+@router.post("/reviewers/{profile_id}/reject")
+def admin_reject_reviewer(profile_id: str, auth: Auth, db: Session = Depends(get_db)):
+    profile = db.query(ReviewerProfile).filter(ReviewerProfile.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404)
+    profile.status = "REJECTED"
+    db.commit()
+    return _redirect("/admin/reviewers", f"{profile.name} rejected", "error")

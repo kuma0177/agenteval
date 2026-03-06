@@ -38,7 +38,7 @@
       AgentEval gives your team a structured reliability audit — LLM scoring, human expert review, and a PDF report with actionable recommendations. Delivered in 5 business days.
     </p>
     <div class="btn-group" style="justify-content:center;">
-      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-large">Book a Free Call</a>
+      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">Book a Free Call</a>
       <a href="#sample-report" class="btn btn-secondary btn-large">See a Sample Report</a>
     </div>
     <p style="margin-top:48px;font-size:14px;color:var(--color-subtle);">
@@ -329,7 +329,7 @@
           <li>45-min debrief call</li>
           <li>5 business day turnaround</li>
         </ul>
-        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-secondary btn-full">Book a Discovery Call</a>
+        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-full">Book a Discovery Call</a>
         <p class="fine-print" style="margin-top:12px;text-align:center;">No subscription. One-time payment.</p>
       </div>
 
@@ -346,7 +346,7 @@
           <li>60-min debrief + 30-min follow-up at 30 days</li>
           <li>Priority 3 business day turnaround</li>
         </ul>
-        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-full">Book a Discovery Call</a>
+        <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-full">Book a Discovery Call</a>
         <p class="fine-print" style="margin-top:12px;text-align:center;">Best for pre-launch audits and compliance reviews.</p>
       </div>
 
@@ -421,6 +421,98 @@
   </div>
 </section>
 
+<!-- ── EXPERT NETWORK ── -->
+<section id="expert-network" style="background:var(--color-white);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Expert Network</p>
+      <h2 class="text-h2" style="margin-bottom:20px;">Human reviewers with real domain expertise.</h2>
+      <p style="font-size:var(--text-body);color:var(--color-mid);max-width:520px;margin:0 auto;line-height:1.65;">
+        Every reviewer is vetted, NDA-signed, and matched to the domain of your agent.
+        A clinical AI trace is never reviewed by a finance professional.
+      </p>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:56px;">
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:14px;">
+        <span class="badge badge-teal">Healthcare</span>
+        <h3 style="font-size:18px;font-weight:700;">Clinical professionals</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          RNs, physicians, and clinical informaticists reviewing documentation agents,
+          triage tools, and clinical decision support systems.
+        </p>
+        <p class="fine-print">MD · RN · PA · Clinical Informatics</p>
+      </div>
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:14px;">
+        <span class="badge badge-purple">Legal &amp; Compliance</span>
+        <h3 style="font-size:18px;font-weight:700;">Legal professionals</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          Paralegals and attorneys reviewing contract analysis, regulatory research,
+          and compliance monitoring agents.
+        </p>
+        <p class="fine-print">JD · Paralegal · Compliance Officer</p>
+      </div>
+
+      <div class="card-border" style="display:flex;flex-direction:column;gap:14px;">
+        <span class="badge badge-blue">Technical</span>
+        <h3 style="font-size:18px;font-weight:700;">Senior engineers</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;flex:1;">
+          Staff and principal engineers reviewing code generation, debugging agents,
+          and developer tooling across any tech stack.
+        </p>
+        <p class="fine-print">5+ years experience required</p>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;">
+      <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:24px;">
+        Domain expert? Apply to join our reviewer network — earn per review, work async, from anywhere.
+      </p>
+      <a href="/reviewers/apply" class="btn btn-secondary btn-large">Apply as a Reviewer →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST & DATA SECURITY ── -->
+<section style="background:var(--color-surface-2);padding:var(--section-padding-y) 0;">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px;">
+      <p class="eyebrow" style="margin-bottom:16px;">Trust &amp; Security</p>
+      <h2 class="text-h2" style="margin-bottom:20px;">Your traces are confidential. Always.</h2>
+    </div>
+    <div class="grid-3">
+
+      <div class="card-border" style="text-align:center;">
+        <div style="font-size:36px;margin-bottom:16px;">🔒</div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:10px;">NDA-backed reviewers</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;">
+          Every reviewer signs a mutual NDA before accessing any client data. We can also sign your NDA before you share a single trace.
+        </p>
+      </div>
+
+      <div class="card-border" style="text-align:center;">
+        <div style="font-size:36px;margin-bottom:16px;">🚫</div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:10px;">No model training</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;">
+          We never use your agent traces to fine-tune or train any model. Your proprietary data stays yours.
+        </p>
+      </div>
+
+      <div class="card-border" style="text-align:center;">
+        <div style="font-size:36px;margin-bottom:16px;">🗑️</div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:10px;">Data deletion on request</h3>
+        <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;">
+          Request full deletion of your traces and report at any time after delivery. We respond within 24 hours.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- ── FINAL CTA ── -->
 <section style="background:var(--color-white);padding:128px 0;">
   <div class="container text-center">
@@ -431,7 +523,7 @@
       Book a free 20-minute call. We'll look at your agent together and tell you what to test.
     </p>
     <div class="btn-group" style="justify-content:center;">
-      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener" class="btn btn-primary btn-large">Book a Free Call</a>
+      <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">Book a Free Call</a>
       <a href="#sample-report" class="btn btn-secondary btn-large">Get a Sample Report</a>
     </div>
   </div>
@@ -440,6 +532,7 @@
 <script>
 document.getElementById('lead-form').addEventListener('submit', async function(e) {
   e.preventDefault();
+  const form = e.target;
   const email = document.getElementById('lead-email').value;
   const company = document.getElementById('lead-company').value;
   try {
@@ -449,10 +542,13 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
       body: JSON.stringify({email, company, name: '', agent_description: ''})
     });
     if (res.ok) {
-      document.getElementById('lead-form').style.display = 'none';
+      form.style.display = 'none';
       document.getElementById('lead-success').style.display = 'block';
+    } else {
+      window.resetFormBtn && window.resetFormBtn(form);
     }
   } catch(err) {
+    window.resetFormBtn && window.resetFormBtn(form);
     document.getElementById('lead-success').style.display = 'block';
   }
 });

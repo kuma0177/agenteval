@@ -61,6 +61,14 @@ class Trace(Base):
     llm_verdict = Column(String, nullable=True)
     llm_reasoning = Column(Text, nullable=True)
     llm_score = Column(Float, nullable=True)
+    # v7 dimension scoring
+    llm_score_overall = Column(Float, nullable=True)
+    score_task_completion = Column(Float, nullable=True)
+    score_tool_selection = Column(Float, nullable=True)
+    score_reasoning = Column(Float, nullable=True)
+    score_policy_compliance = Column(Float, nullable=True)
+    score_hallucination_risk = Column(Float, nullable=True)
+    dim_notes = Column(Text, nullable=True)
     failure_category = Column(String, nullable=True)
     failure_detail = Column(Text, nullable=True)
     human_verdict = Column(String, nullable=True)
@@ -93,3 +101,23 @@ class Lead(Base):
     company = Column(String)
     agent_description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ReviewerProfile(Base):
+    __tablename__ = "reviewer_profiles"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    domain_expertise = Column(String, nullable=False)
+    years_experience = Column(Integer, nullable=True)
+    linkedin_url = Column(String, nullable=True)
+    hourly_rate_usd = Column(Integer, nullable=True)
+    availability = Column(String, nullable=True)
+    bio = Column(Text, nullable=True)
+    status = Column(String, default="PENDING")
+    rating = Column(Float, nullable=True)
+    completed_reviews = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    approved_at = Column(DateTime, nullable=True)
+    notes = Column(Text, nullable=True)

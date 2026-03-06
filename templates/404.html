@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Page Not Found — AgentEval</title>
+{% endblock %}
+
+{% block content %}
+<section style="min-height:60vh;display:flex;align-items:center;justify-content:center;padding:80px 24px;">
+  <div style="text-align:center;max-width:520px;">
+    <p style="font-size:80px;font-weight:800;color:var(--color-accent);line-height:1;margin-bottom:16px;">404</p>
+    <h1 style="font-size:28px;font-weight:700;color:var(--color-near-black);margin-bottom:16px;">Page not found.</h1>
+    <p style="font-size:var(--text-body);color:var(--color-mid);line-height:1.7;margin-bottom:12px;">
+      If you're looking for your audit link, check your email or contact
+      <a href="mailto:hello@agenteval.com" style="color:var(--color-accent);">hello@agenteval.com</a>.
+    </p>
+    <p style="font-size:var(--text-body);color:var(--color-mid);margin-bottom:36px;">
+      Your report link looks like: <code style="background:#f3f4f6;padding:2px 7px;border-radius:4px;font-size:13px;">/report/&lt;token&gt;</code>
+    </p>
+    <a href="/" class="btn btn-primary">← Back to Home</a>
+  </div>
+</section>
+{% endblock %}
