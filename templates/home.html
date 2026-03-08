@@ -8,7 +8,7 @@
 {% block content %}
 
 <!-- ── SECTION 1: HERO ── -->
-<section style="background:var(--color-surface-2);padding:160px 0 120px;">
+<section style="background:var(--color-surface-2);padding:120px 0 96px;">
   <div class="container" style="text-align:center;">
     <p class="eyebrow" style="margin-bottom:16px;">AI Agent Reliability Platform</p>
     <h1 class="text-hero" style="max-width:820px;margin:0 auto 24px;color:var(--color-near-black);">
@@ -48,7 +48,7 @@
 </section>
 
 <!-- ── SECTION 3: THE PROBLEM ── -->
-<section style="background:var(--color-near-black);padding:128px 0;">
+<section style="background:var(--color-near-black);padding:96px 0;">
   <div class="container">
     <div style="text-align:center;margin-bottom:64px;">
       <p class="eyebrow-white" style="margin-bottom:16px;">The Problem</p>
@@ -82,7 +82,7 @@
 </section>
 
 <!-- ── SECTION 4: HOW IT WORKS ── -->
-<section id="how-it-works" style="background:var(--color-white);padding:128px 0;">
+<section id="how-it-works" style="background:var(--color-white);padding:96px 0;">
   <div class="container">
     <div style="text-align:center;margin-bottom:64px;">
       <p class="eyebrow" style="margin-bottom:16px;">How It Works</p>
@@ -126,96 +126,94 @@
 </section>
 
 <!-- ── SECTION 5: 6-DIMENSION SCORECARD ── -->
-<section id="scorecard" style="background:var(--color-surface-2);padding:128px 0;">
+<section id="scorecard" style="background:var(--color-surface-2);padding:96px 0;">
   <div class="container">
-    <div style="text-align:center;margin-bottom:56px;">
-      <p class="eyebrow" style="margin-bottom:16px;">The Evaluation Framework</p>
-      <h2 class="text-h2" style="margin-bottom:16px;">A holistic scorecard for every agent.</h2>
-      <p style="font-size:17px;color:var(--color-mid);max-width:540px;margin:0 auto;">
-        Like a Yelp review with structured dimensions — not just thumbs up or down.
+    <div style="text-align:center;margin-bottom:48px;">
+      <p class="eyebrow" style="margin-bottom:12px;">The Evaluation Framework</p>
+      <h2 class="text-h2" style="margin-bottom:12px;">A holistic scorecard for every agent.</h2>
+      <p style="font-size:17px;color:var(--color-mid);max-width:480px;margin:0 auto;">
+        Six structured dimensions — not just thumbs up or down.
       </p>
     </div>
-    <div class="grid-6">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto;">
       <div class="dim-card">
         <div class="dim-icon">✅</div>
         <h3>Task Performance</h3>
         <div class="dim-weight">30% weight</div>
-        <p>Did the agent fully and correctly complete the task? We measure goal achievement, accuracy, output quality, and tool use correctness.</p>
+        <p>Goal achievement, accuracy, output quality, and tool use correctness.</p>
       </div>
       <div class="dim-card">
         <div class="dim-icon">🧠</div>
         <h3>Reasoning &amp; Autonomy</h3>
         <div class="dim-weight">20% weight</div>
-        <p>Quality of thinking and decision chains. Logical consistency, handling of ambiguous inputs, and appropriate escalation to humans.</p>
+        <p>Logical consistency, handling of ambiguous inputs, and appropriate escalation.</p>
       </div>
       <div class="dim-card">
         <div class="dim-icon">🛡️</div>
         <h3>Operational Reliability</h3>
         <div class="dim-weight">15% weight</div>
-        <p>Does it break? Error handling, loop detection, graceful degradation, crash recovery, and retry behavior under edge cases.</p>
+        <p>Error handling, loop detection, graceful degradation, and crash recovery.</p>
       </div>
       <div class="dim-card">
         <div class="dim-icon">👤</div>
         <h3>User Experience &amp; Trust</h3>
         <div class="dim-weight">15% weight</div>
-        <p>Tone, clarity, and calibrated confidence. Does the agent communicate uncertainty appropriately? Is it actually helpful to end users?</p>
+        <p>Tone, clarity, and calibrated confidence. Does it communicate uncertainty well?</p>
       </div>
       <div class="dim-card">
         <div class="dim-icon">🔒</div>
         <h3>Ethics &amp; Safety</h3>
         <div class="dim-weight">10% weight</div>
-        <p>No harmful outputs, hallucinations, bias, or policy violations. Critical for regulated industries including healthcare, legal, and finance.</p>
+        <p>No harmful outputs, hallucinations, bias, or policy violations.</p>
       </div>
       <div class="dim-card">
         <div class="dim-icon">⚡</div>
         <h3>Efficiency</h3>
         <div class="dim-weight">10% weight</div>
-        <p>Cost per task, unnecessary tool calls, and token waste. Requires trace metadata — null if not provided. Important at production scale.</p>
+        <p>Cost per task, unnecessary tool calls, and token waste at production scale.</p>
       </div>
     </div>
-    <p style="text-align:center;font-size:14px;color:var(--color-subtle);margin-top:32px;">
-      Each dimension scored 0.0–1.0. Weighted composite = your agent's grade.
-    </p>
-    <div style="text-align:center;margin-top:24px;">
+    <div style="text-align:center;margin-top:32px;">
+      <p style="font-size:13px;color:var(--color-subtle);margin-bottom:16px;">Each dimension scored 0.0–1.0. Weighted composite = your agent's grade.</p>
       <a href="#sample-report" class="btn btn-secondary">See a Sample Report →</a>
     </div>
   </div>
 </section>
 
 <!-- ── SECTION 6: WHAT YOU GET ── -->
-<section id="sample-report" style="background:var(--color-white);padding:128px 0;">
+<section id="sample-report" style="background:var(--color-white);padding:96px 0;">
   <div class="container">
-    <div style="text-align:center;margin-bottom:64px;">
-      <p class="eyebrow" style="margin-bottom:16px;">What You Get</p>
+    <div style="text-align:center;margin-bottom:48px;">
+      <p class="eyebrow" style="margin-bottom:12px;">What You Get</p>
       <h2 class="text-h2">A report your whole team can read.</h2>
     </div>
-    <div style="display:grid;grid-template-columns:3fr 2fr;gap:48px;align-items:start;">
-      <div>
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:40px;align-items:start;max-width:900px;margin:0 auto;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="report-card">
           <h4>Evaluation Methodology</h4>
           <p>Explains the 2-layer LLM + human process in language your board and investors understand.</p>
         </div>
         <div class="report-card">
           <h4>6-Dimension Scorecard</h4>
-          <p>Visual bar chart for all 6 dimensions with scores, weights, and benchmarks against industry averages.</p>
+          <p>Visual bars for all 6 dimensions with scores, weights, and benchmarks.</p>
         </div>
         <div class="report-card">
           <h4>Failure Heatmap</h4>
-          <p>Category breakdown of every failure — HALLUCINATION, INCOMPLETE, WRONG_TOOL, LOOP — with proportional bars.</p>
+          <p>Category breakdown — HALLUCINATION, INCOMPLETE, WRONG_TOOL, LOOP — with proportional bars.</p>
         </div>
         <div class="report-card">
           <h4>Root Cause Analysis</h4>
-          <p>Every failed trace annotated with per-dimension notes, LLM reasoning, and human reviewer verdict where applicable.</p>
+          <p>Every failed trace annotated with per-dimension notes, LLM reasoning, and human verdict.</p>
         </div>
         <div class="report-card">
           <h4>3 Engineer-Ready Recommendations</h4>
-          <p>Specific, actionable fixes prioritized by impact. Actual implementation guidance your team can ship in the next sprint.</p>
+          <p>Specific, actionable fixes your team can ship in the next sprint.</p>
         </div>
       </div>
-      <div>
-        <div class="card" style="box-shadow:var(--shadow-lg);border:1px solid var(--color-rule);padding:40px 32px;">
-          <h3 style="font-size:20px;font-weight:700;margin-bottom:6px;">Get a sample report</h3>
-          <p style="font-size:14px;color:var(--color-mid);margin-bottom:24px;">See exactly what your team and board will receive.</p>
+      <div style="position:sticky;top:64px;">
+        <div style="background:var(--color-white);border:1px solid var(--color-rule);border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow-lg);">
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;">Get a sample report</h3>
+          <p style="font-size:14px;color:var(--color-mid);margin-bottom:20px;">See exactly what your team and board will receive.</p>
           <div id="lead-success" class="inline-success">
             <div class="success-icon">✓</div>
             <h3>On its way!</h3>
@@ -226,7 +224,7 @@
               <label for="lead-email">Work email *</label>
               <input type="email" id="lead-email" required placeholder="you@company.com">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom:20px;">
               <label for="lead-company">Company name *</label>
               <input type="text" id="lead-company" required placeholder="Acme Corp">
             </div>
@@ -235,7 +233,7 @@
             </button>
             <p id="lead-error" style="display:none;font-size:13px;color:var(--color-fail);margin-top:8px;text-align:center;"></p>
           </form>
-          <p class="fine-print" style="margin-top:12px;text-align:center;">No spam. Just the report.</p>
+          <p class="fine-print" style="margin-top:10px;text-align:center;">No spam. Just the report.</p>
         </div>
       </div>
     </div>
@@ -276,7 +274,7 @@
 </script>
 
 <!-- ── SECTION 7: EXPERT NETWORK ── -->
-<section id="expert-network" style="background:var(--color-surface-2);padding:128px 0;">
+<section id="expert-network" style="background:var(--color-surface-2);padding:96px 0;">
   <div class="container">
     <div style="text-align:center;margin-bottom:64px;">
       <p class="eyebrow" style="margin-bottom:16px;">Human Review Layer</p>
@@ -313,66 +311,6 @@
   </div>
 </section>
 
-<!-- ── SECTION 8: AGENT SCORECARD TEASER ── -->
-<section style="background:var(--color-white);padding:96px 0;">
-  <div class="container" style="text-align:center;">
-    <p class="eyebrow" style="margin-bottom:16px;">Coming Soon</p>
-    <h2 class="text-h2" style="margin-bottom:16px;">The Yelp for AI agents.</h2>
-    <p style="font-size:17px;color:var(--color-mid);max-width:600px;margin:0 auto 40px;line-height:1.65;">
-      As agents accumulate audit history, their public AgentEval score becomes a trust signal for enterprise buyers and investors. <em>"Our agent is 91% AgentEval-certified"</em> is something you can say.
-    </p>
-    <div class="mock-agent-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-        <div style="text-align:left;">
-          <div style="font-size:18px;font-weight:700;color:var(--color-near-black);">MedAssist AI</div>
-          <div style="font-size:13px;color:var(--color-subtle);">Acme Health · Clinical</div>
-        </div>
-        <span class="badge badge-teal">Healthcare</span>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
-        <span style="font-size:52px;font-weight:800;color:var(--color-pass);letter-spacing:-0.03em;line-height:1;">87%</span>
-        <span style="font-size:13px;color:var(--color-subtle);">AgentEval score</span>
-      </div>
-      <div class="mini-bars" style="margin-top:16px;">
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">Task Perf.</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:91%;background:var(--color-pass);"></div></div>
-          <span class="mini-bar-val">0.91</span>
-        </div>
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">Reasoning</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:84%;"></div></div>
-          <span class="mini-bar-val">0.84</span>
-        </div>
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">Reliability</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:88%;background:var(--color-pass);"></div></div>
-          <span class="mini-bar-val">0.88</span>
-        </div>
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">UX &amp; Trust</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:82%;"></div></div>
-          <span class="mini-bar-val">0.82</span>
-        </div>
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">Ethics</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:95%;background:var(--color-pass);"></div></div>
-          <span class="mini-bar-val">0.95</span>
-        </div>
-        <div class="mini-bar-row">
-          <span class="mini-bar-label">Efficiency</span>
-          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:78%;"></div></div>
-          <span class="mini-bar-val">0.78</span>
-        </div>
-      </div>
-      <p style="font-size:12px;color:var(--color-subtle);margin-top:16px;text-align:left;">3 audits · Last: February 2025</p>
-    </div>
-    <div style="margin-top:32px;">
-      <a href="/agents" class="btn btn-secondary">Browse Agent Scorecards →</a>
-    </div>
-  </div>
-</section>
-
 <!-- ── SECTION 9: COMPARISON ── -->
 <section style="background:var(--color-surface-2);padding:96px 0;">
   <div class="container">
@@ -404,7 +342,7 @@
 </section>
 
 <!-- ── SECTION 10: PRICING ── -->
-<section id="pricing" style="background:var(--color-white);padding:128px 0;">
+<section id="pricing" style="background:var(--color-white);padding:96px 0;">
   <div class="container">
     <div style="text-align:center;margin-bottom:64px;">
       <p class="eyebrow" style="margin-bottom:16px;">Pricing</p>
@@ -558,7 +496,7 @@
 </section>
 
 <!-- ── SECTION 13: FINAL CTA ── -->
-<section style="background:var(--color-surface-2);padding:128px 0;">
+<section style="background:var(--color-surface-2);padding:96px 0;">
   <div class="container" style="text-align:center;">
     <h2 class="text-h2" style="max-width:620px;margin:0 auto 24px;">
       Know your agent works before your users find out it doesn't.
