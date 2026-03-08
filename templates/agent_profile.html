@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>{{ profile.agent_name }} — AgentEval Scorecard</title>
+<meta name="description" content="{{ profile.agent_name }} by {{ profile.company_name }}. AgentEval reliability score: {{ score_pct }}% across 6 dimensions.">
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<section style="background:var(--color-surface-2);padding:64px 0 48px;">
+  <div class="container">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:24px;">
+      <div>
+        <p style="font-size:13px;color:var(--color-subtle);margin-bottom:8px;"><a href="/agents" style="color:var(--color-accent);">← Agent Scorecard</a></p>
+        <h1 style="font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.02em;margin-bottom:6px;">{{ profile.agent_name }}</h1>
+        <p style="font-size:16px;color:var(--color-mid);">{{ profile.company_name }}</p>
+        {% if profile.agent_description %}
+        <p style="font-size:15px;color:var(--color-mid);max-width:560px;margin-top:12px;line-height:1.65;">{{ profile.agent_description }}</p>
+        {% endif %}
+      </div>
+      <div style="text-align:center;min-width:120px;">
+        <div style="font-size:clamp(52px,7vw,80px);font-weight:800;line-height:1;letter-spacing:-0.03em;color:{{ score_color }};">
+          {{ score_pct }}%
+        </div>
+        <div style="font-size:13px;color:var(--color-subtle);margin-top:4px;">AgentEval score</div>
+        <div class="verified-badge" style="margin-top:12px;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1L9.8 5.4L14.6 5.4L10.9 8.2L12.3 12.6L8 9.8L3.7 12.6L5.1 8.2L1.4 5.4L6.2 5.4Z" fill="#1d8348"/></svg>
+          Verified by AgentEval
+        </div>
+        <p style="font-size:12px;color:var(--color-subtle);margin-top:8px;">{{ profile.audit_count }} audit{{ 's' if profile.audit_count != 1 else '' }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Scores + Radar -->
+<section style="background:var(--color-white);padding:64px 0;">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;">
+
+      <!-- Dimension bars -->
+      <div>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:24px;">6-Dimension Breakdown</h2>
+        {% for dim_key, dim_label, weight in dims %}
+        {% set val = profile|attr(dim_key) %}
+        {% set pct = (val * 100)|int if val else 0 %}
+        {% set bar_color = '#1d8348' if pct >= 75 else ('#d68910' if pct >= 50 else '#b03a2e') %}
+        <div style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:15px;font-weight:600;">{{ dim_label }}</span>
+            <span style="font-size:14px;font-weight:700;color:{{ bar_color }};">{{ '%.2f'|format(val) if val else '—' }}</span>
+          </div>
+          <div style="height:8px;background:var(--color-rule);border-radius:4px;overflow:hidden;">
+            <div style="height:8px;width:{{ pct }}%;background:{{ bar_color }};border-radius:4px;transition:width 0.4s ease;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span style="font-size:11px;color:var(--color-subtle);">{{ weight }} weight</span>
+            {% if val %}
+            <span style="font-size:11px;color:{{ bar_color }};font-weight:600;">
+              {% if pct >= 75 %}Strong{% elif pct >= 50 %}Adequate{% else %}Needs work{% endif %}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- CSS/SVG Radar -->
+      <div>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:24px;text-align:center;">Reliability Radar</h2>
+        <div class="radar-wrap">
+          <svg viewBox="0 0 300 300" width="280" height="280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Grid rings (pre-computed hexagons at 25/50/75/100%) -->
+            <polygon points="150,67.5 217.5,105 217.5,177 150,214.5 82.5,177 82.5,105" fill="none" stroke="#d2d2d7" stroke-width="1"/>
+            <polygon points="150,95 198.75,122.5 198.75,169.5 150,196 101.25,169.5 101.25,122.5" fill="none" stroke="#d2d2d7" stroke-width="1"/>
+            <polygon points="150,122.5 180,139 180,161 150,177.5 120,161 120,139" fill="none" stroke="#d2d2d7" stroke-width="1"/>
+            <polygon points="150,150 150,150 150,150 150,150 150,150 150,150" fill="none" stroke="#d2d2d7" stroke-width="1"/>
+            <!-- Axes -->
+            <line x1="150" y1="150" x2="150" y2="40"  stroke="#d2d2d7" stroke-width="1"/>
+            <line x1="150" y1="150" x2="245" y2="95"  stroke="#d2d2d7" stroke-width="1"/>
+            <line x1="150" y1="150" x2="245" y2="205" stroke="#d2d2d7" stroke-width="1"/>
+            <line x1="150" y1="150" x2="150" y2="260" stroke="#d2d2d7" stroke-width="1"/>
+            <line x1="150" y1="150" x2="55"  y2="205" stroke="#d2d2d7" stroke-width="1"/>
+            <line x1="150" y1="150" x2="55"  y2="95"  stroke="#d2d2d7" stroke-width="1"/>
+            <!-- Data polygon -->
+            <polygon points="{{ radar_points }}" fill="rgba(0,102,204,0.15)" stroke="#0066cc" stroke-width="2"/>
+            <!-- Data dots -->
+            {% for pt in radar_dots %}
+            <circle cx="{{ pt[0] }}" cy="{{ pt[1] }}" r="4" fill="#0066cc"/>
+            {% endfor %}
+            <!-- Labels -->
+            <text x="150" y="28"  text-anchor="middle" font-size="10" fill="#86868b" font-family="system-ui,sans-serif">Task Perf.</text>
+            <text x="258" y="92"  text-anchor="start"  font-size="10" fill="#86868b" font-family="system-ui,sans-serif">Reasoning</text>
+            <text x="258" y="212" text-anchor="start"  font-size="10" fill="#86868b" font-family="system-ui,sans-serif">Reliability</text>
+            <text x="150" y="278" text-anchor="middle" font-size="10" fill="#86868b" font-family="system-ui,sans-serif">UX &amp; Trust</text>
+            <text x="42"  y="212" text-anchor="end"    font-size="10" fill="#86868b" font-family="system-ui,sans-serif">Ethics</text>
+            <text x="42"  y="92"  text-anchor="end"    font-size="10" fill="#86868b" font-family="system-ui,sans-serif">Efficiency</text>
+          </svg>
+        </div>
+        <p class="fine-print" style="text-align:center;">Based on {{ profile.audit_count }} completed audit{{ 's' if profile.audit_count != 1 else '' }}. Scores are averages across all traces.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Audit history -->
+{% if audit_history %}
+<section style="background:var(--color-surface-2);padding:64px 0;">
+  <div class="container">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:24px;">Audit History</h2>
+    <div style="max-width:640px;">
+      {% for a in audit_history %}
+      <div class="audit-row">
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:600;">{{ a['company_name'] }}</div>
+          <div style="font-size:13px;color:var(--color-subtle);">{{ a['created_at'].strftime('%B %Y') if a['created_at'] else 'Unknown date' }}</div>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:18px;font-weight:800;color:var(--color-pass);">
+            {{ a['pass_pct'] }}% pass rate
+          </span>
+          <div style="font-size:12px;color:var(--color-subtle);">{{ a['trace_count'] }} traces</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section style="background:var(--color-white);padding:64px 0;">
+  <div class="container" style="text-align:center;">
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:12px;">Get your agent evaluated.</h2>
+    <p style="font-size:16px;color:var(--color-mid);max-width:400px;margin:0 auto 28px;line-height:1.65;">
+      Start with a free discovery call. We'll scope the right audit in 30 minutes.
+    </p>
+    <a href="{{ config.CALENDLY_URL or '#' }}" target="_blank" rel="noopener" class="btn btn-primary">Book a Free Call</a>
+  </div>
+</section>
+
+{% endblock %}

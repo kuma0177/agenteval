@@ -10,28 +10,23 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="/" class="nav-logo" style="display:flex;align-items:center;gap:7px;">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <!-- large vertical ray -->
+    <a href="/" class="nav-logo">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M11 1 C11 1 12.2 7.5 11 11 C9.8 14.5 11 21 11 21" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
-        <!-- large horizontal ray -->
         <path d="M1 11 C1 11 7.5 9.8 11 11 C14.5 12.2 21 11 21 11" stroke="#0066cc" stroke-width="2" stroke-linecap="round"/>
-        <!-- diagonal ray top-right -->
         <path d="M17.2 4.8 C17.2 4.8 14.1 8.5 11 11 C7.9 13.5 4.8 17.2 4.8 17.2" stroke="#0066cc" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
-        <!-- diagonal ray top-left -->
         <path d="M4.8 4.8 C4.8 4.8 8.5 7.9 11 11 C13.5 14.1 17.2 17.2 17.2 17.2" stroke="#0066cc" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
-        <!-- center dot -->
         <circle cx="11" cy="11" r="2" fill="#0066cc"/>
       </svg>
       AgentEval
     </a>
     <ul class="nav-links">
-      <li><a href="/#how-it-works">How It Works</a></li>
-      <li><a href="/#sample-report">What You Get</a></li>
+      <li><a href="/#scorecard">Platform</a></li>
       <li><a href="/#pricing">Pricing</a></li>
-      <li><a href="/#faq">FAQ</a></li>
+      <li><a href="/#expert-network">Expert Network</a></li>
+      <li><a href="/agents">Agent Scorecard</a></li>
     </ul>
-    <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-cta" style="padding:9px 20px;font-size:14px;">Book a Call</a>
+    <a href="{{ config.CALENDLY_URL or '#' }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary nav-cta" style="padding:9px 20px;font-size:14px;">Book a Call</a>
     <button class="hamburger" id="hamburger" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -39,11 +34,12 @@
 </nav>
 
 <div class="mobile-menu" id="mobile-menu">
-  <a href="/#how-it-works">How It Works</a>
-  <a href="/#sample-report">What You Get</a>
+  <a href="/#scorecard">Platform</a>
   <a href="/#pricing">Pricing</a>
-  <a href="/#faq">FAQ</a>
-  <a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-align:center;">Book a Call</a>
+  <a href="/#expert-network">Expert Network</a>
+  <a href="/agents">Agent Scorecard</a>
+  <a href="/reviewers/apply">Join as Reviewer</a>
+  <a href="{{ config.CALENDLY_URL or '#' }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-align:center;">Book a Call</a>
 </div>
 
 <script>
@@ -56,10 +52,7 @@
 </script>
 
 <!-- Flash messages (driven by ?msg= or ?error= in URL) -->
-<div id="flash-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 24px;font-size:14px;font-weight:600;text-align:center;animation:fadeOutFlash 0.5s ease 3.5s forwards;"></div>
-<style>
-  @keyframes fadeOutFlash { to { opacity:0; pointer-events:none; } }
-</style>
+<div id="flash-bar" style="display:none;position:fixed;top:48px;left:0;right:0;z-index:9999;padding:12px 24px;font-size:14px;font-weight:600;text-align:center;animation:fadeOutFlash 0.5s ease 3.5s forwards;"></div>
 
 <main>
   {% block content %}{% endblock %}
@@ -80,7 +73,6 @@
     setTimeout(function() { bar.style.display = 'none'; }, 4000);
   }
 
-  // Form loading states — applied to all forms automatically
   document.addEventListener('submit', function(e) {
     var form = e.target;
     if (form.dataset.noLoading) return;
@@ -93,7 +85,6 @@
     }
   }, true);
 
-  // Re-enable on back-forward cache restore
   window.addEventListener('pageshow', function(e) {
     if (e.persisted) {
       document.querySelectorAll('[type=submit][disabled]').forEach(function(btn) {
@@ -103,7 +94,6 @@
     }
   });
 
-  // Expose helper so AJAX forms can re-enable on error
   window.resetFormBtn = function(form) {
     var btn = form && form.querySelector('[type=submit]');
     if (btn) { btn.disabled = false; if (btn._origText) btn.textContent = btn._origText; }
@@ -116,26 +106,41 @@
     <div class="footer-grid">
       <div>
         <span class="footer-logo">AgentEval</span>
-        <p class="footer-tagline">The AI agent evaluation service</p>
+        <p class="footer-tagline">The AI agent reliability platform. 6-dimension scoring, human expert review, 9-section report.</p>
       </div>
       <div>
+        <p class="footer-col-title">Platform</p>
         <ul class="footer-links">
-          <li><a href="/#how-it-works">How It Works</a></li>
+          <li><a href="/#scorecard">6-Dimension Scorecard</a></li>
           <li><a href="/#sample-report">What You Get</a></li>
+          <li><a href="/#how-it-works">How It Works</a></li>
           <li><a href="/#pricing">Pricing</a></li>
           <li><a href="/#faq">FAQ</a></li>
-          <li><a href="mailto:hello@agenteval.com">hello@agenteval.com</a></li>
         </ul>
       </div>
       <div>
-        <p style="font-size:13px;color:rgba(255,255,255,0.35);">
-          &copy; {{ 2025 }} AgentEval. All rights reserved.
-        </p>
-        <ul class="footer-links" style="margin-top:12px;">
+        <p class="footer-col-title">Network</p>
+        <ul class="footer-links">
+          <li><a href="/agents">Agent Scorecard</a></li>
+          <li><a href="/#expert-network">Expert Reviewers</a></li>
+          <li><a href="/reviewers/apply">Join as Reviewer</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Contact</p>
+        <ul class="footer-links">
+          <li><a href="mailto:hello@agenteval.com">hello@agenteval.com</a></li>
+          {% if config.CALENDLY_URL %}
+          <li><a href="{{ config.CALENDLY_URL }}" target="_blank" rel="noopener">Book a Call</a></li>
+          {% endif %}
           <li><a href="/privacy">Privacy Policy</a></li>
           <li><a href="/terms">Terms of Service</a></li>
         </ul>
       </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2025 AgentEval. All rights reserved.</span>
+      <span>AI agent evaluation you can show your board.</span>
     </div>
   </div>
 </footer>

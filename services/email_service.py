@@ -293,3 +293,41 @@ def send_report_ready(contact_email: str, contact_name: str, access_token: str) 
     <p>— The AgentEval Team</p>
     """
     return send_email(contact_email, subject, html)
+
+
+# ── Operator alert: new lead ───────────────────────────────────────────────────
+
+def send_new_lead_alert(lead) -> bool:
+    if not settings.OPERATOR_EMAIL:
+        return False
+    html = (
+        f"<p>New lead from <strong>{lead.email}</strong></p>"
+        f"<p>Company: {lead.company or '(none)'}</p>"
+        f"<p>Description: {lead.agent_description or '(none)'}</p>"
+        f"<p><a href='{settings.BASE_URL}/admin'>View in admin</a></p>"
+    )
+    return send_email(
+        to=settings.OPERATOR_EMAIL,
+        subject=f"New lead: {lead.email}",
+        html=html,
+    )
+
+
+# ── Operator alert: new reviewer application ──────────────────────────────────
+
+def send_new_application_alert(profile) -> bool:
+    if not settings.OPERATOR_EMAIL:
+        return False
+    html = (
+        f"<p><strong>{profile.name}</strong> ({profile.email}) applied as a reviewer.</p>"
+        f"<p>Domain: {profile.domain_expertise}</p>"
+        f"<p>Years experience: {profile.years_experience or '?'}</p>"
+        f"<p>Rate: ${profile.hourly_rate_usd or '?'}/review &nbsp;·&nbsp; Availability: {profile.availability or '?'}</p>"
+        f"<p>Bio: {profile.bio or '(none)'}</p>"
+        f"<p><a href='{settings.BASE_URL}/admin/reviewers'>Review in admin</a></p>"
+    )
+    return send_email(
+        to=settings.OPERATOR_EMAIL,
+        subject=f"New reviewer application: {profile.name} ({profile.domain_expertise})",
+        html=html,
+    )

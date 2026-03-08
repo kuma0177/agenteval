@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Agent Scorecard — AgentEval</title>
+<meta name="description" content="Browse AgentEval-certified AI agents. Third-party reliability scores across 6 dimensions.">
+{% endblock %}
+
+{% block content %}
+
+<section style="background:var(--color-surface-2);padding:80px 0 56px;">
+  <div class="container" style="text-align:center;">
+    <p class="eyebrow" style="margin-bottom:16px;">Public Registry</p>
+    <h1 class="text-h1" style="margin-bottom:16px;">Agent Scorecard</h1>
+    <p style="font-size:19px;color:var(--color-mid);max-width:520px;margin:0 auto;">
+      Audited AI agents, scored across 6 reliability dimensions. Third-party verified.
+    </p>
+  </div>
+</section>
+
+<section style="background:var(--color-white);padding:64px 0 96px;">
+  <div class="container">
+
+    {% if profiles %}
+    <div class="grid-3">
+      {% for p in profiles %}
+      {% set score_pct = (p.overall_avg * 100)|int if p.overall_avg else 0 %}
+      {% set score_color = '#1d8348' if score_pct >= 75 else ('#d68910' if score_pct >= 50 else '#b03a2e') %}
+      <a href="/agents/{{ p.id }}" class="agent-card" style="text-decoration:none;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div class="agent-card-name">{{ p.agent_name }}</div>
+            <div class="agent-card-company">{{ p.company_name }}</div>
+          </div>
+          <span class="badge badge-muted" style="font-size:11px;">{{ p.agent_description[:20] ~ '…' if p.agent_description and p.agent_description|length > 20 else (p.agent_description or 'Agent') }}</span>
+        </div>
+        {% if p.overall_avg %}
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:12px;">
+          <span style="font-size:40px;font-weight:800;color:{{ score_color }};letter-spacing:-0.03em;line-height:1;">{{ score_pct }}%</span>
+          <span style="font-size:12px;color:var(--color-subtle);">AgentEval score</span>
+        </div>
+        <div class="mini-bars">
+          {% for dim_key, dim_label in [
+            ('task_performance_avg', 'Task Perf.'),
+            ('reasoning_autonomy_avg', 'Reasoning'),
+            ('operational_reliability_avg', 'Reliability'),
+            ('user_experience_avg', 'UX & Trust'),
+            ('ethics_safety_avg', 'Ethics'),
+            ('efficiency_avg', 'Efficiency')
+          ] %}
+          {% set val = p|attr(dim_key) %}
+          <div class="mini-bar-row">
+            <span class="mini-bar-label">{{ dim_label }}</span>
+            <div class="mini-bar-track">
+              <div class="mini-bar-fill" style="width:{{ (val * 100)|int if val else 0 }}%;{% if val and val >= 0.75 %}background:var(--color-pass);{% elif val and val < 0.5 %}background:var(--color-fail);{% endif %}"></div>
+            </div>
+            <span class="mini-bar-val">{{ '%.2f'|format(val) if val else '—' }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="font-size:14px;color:var(--color-subtle);margin:8px 0 12px;">No score yet</p>
+        {% endif %}
+        <p style="font-size:12px;color:var(--color-subtle);margin-top:12px;">
+          {{ p.audit_count }} audit{{ 's' if p.audit_count != 1 else '' }}
+          {% if p.updated_at %} · Last: {{ p.updated_at.strftime('%B %Y') }}{% endif %}
+        </p>
+        <span style="font-size:13px;color:var(--color-accent);margin-top:8px;display:block;">View full scorecard →</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div style="text-align:center;padding:80px 24px;">
+      <p style="font-size:48px;margin-bottom:20px;">📊</p>
+      <h2 style="font-size:24px;font-weight:700;margin-bottom:12px;">No public profiles yet.</h2>
+      <p style="font-size:17px;color:var(--color-mid);max-width:400px;margin:0 auto 32px;line-height:1.65;">
+        Be the first to get your agent AgentEval-certified and claim your public scorecard.
+      </p>
+      <a href="{{ config.CALENDLY_URL or '#' }}" target="_blank" rel="noopener" class="btn btn-primary">Book a Free Discovery Call</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- CTA strip -->
+<section style="background:var(--color-surface-2);padding:64px 0;">
+  <div class="container" style="text-align:center;">
+    <h2 style="font-size:24px;font-weight:700;margin-bottom:12px;">Get your agent on the scorecard.</h2>
+    <p style="font-size:17px;color:var(--color-mid);max-width:440px;margin:0 auto 28px;line-height:1.65;">
+      After your audit, your agent gets a public profile page you can share with customers and investors.
+    </p>
+    <div class="btn-group" style="justify-content:center;">
+      <a href="{{ config.CALENDLY_URL or '#' }}" target="_blank" rel="noopener" class="btn btn-primary">Book a Discovery Call</a>
+      <a href="/" class="btn btn-secondary">Learn How It Works</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

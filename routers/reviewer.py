@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, Request, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -12,25 +12,45 @@ router = APIRouter(tags=["reviewer"])
 templates = Jinja2Templates(directory="templates")
 
 
+# ── Apply ─────────────────────────────────────────────────────────────────────
+
 @router.get("/reviewers/apply", response_class=HTMLResponse)
 def reviewer_apply_form(request: Request):
     return templates.TemplateResponse("reviewer_apply.html", {
-        "request": request, "config": settings, "submitted": False,
+        "request": request, "config": settings,
     })
 
 
-@router.post("/reviewers/apply", response_class=HTMLResponse)
-def reviewer_apply_submit(
+@router.post("/reviewers/apply")
+async def reviewer_apply_submit(
     request: Request,
-    name: str = Form(...),
-    email: str = Form(...),
-    domain_expertise: str = Form(...),
-    years_experience: int = Form(...),
-    linkedin_url: str = Form(""),
-    availability: str = Form(""),
-    bio: str = Form(...),
     db: Session = Depends(get_db),
 ):
+    from services.email_service import send_new_application_alert
+
+    form = await request.form()
+    name             = (form.get("name") or "").strip()
+    email            = (form.get("email") or "").strip()
+    domain_expertise = (form.get("domain_expertise") or "").strip()
+    current_role     = (form.get("current_role") or "").strip()
+    linkedin_url     = (form.get("linkedin_url") or "").strip() or None
+    availability     = (form.get("availability") or "").strip() or None
+    bio_raw          = (form.get("bio") or "").strip()
+    bio              = f"Role: {current_role}\n\n{bio_raw}".strip() if current_role else bio_raw or None
+
+    try:
+        years_experience = int(form.get("years_experience") or 0)
+    except (TypeError, ValueError):
+        years_experience = None
+
+    try:
+        hourly_rate_usd = int(form.get("hourly_rate_usd") or 0) or None
+    except (TypeError, ValueError):
+        hourly_rate_usd = None
+
+    if not name or not email or not domain_expertise:
+        return JSONResponse({"ok": False, "error": "Name, email, and domain are required."}, status_code=400)
+
     existing = db.query(ReviewerProfile).filter(ReviewerProfile.email == email).first()
     if not existing:
         profile = ReviewerProfile(
@@ -38,29 +58,23 @@ def reviewer_apply_submit(
             email=email,
             domain_expertise=domain_expertise,
             years_experience=years_experience,
-            linkedin_url=linkedin_url or None,
-            availability=availability or None,
+            linkedin_url=linkedin_url,
+            hourly_rate_usd=hourly_rate_usd,
+            availability=availability,
             bio=bio,
-            status="PENDING",
+            status="APPLIED",
         )
         db.add(profile)
         db.commit()
+        db.refresh(profile)
+        send_new_application_alert(profile)
+    else:
+        profile = existing
 
-        # Notify operator
-        send_email(
-            to=settings.OPERATOR_EMAIL,
-            subject=f"New reviewer application: {name} ({domain_expertise})",
-            html=(
-                f"<p><strong>{name}</strong> ({email}) applied as a reviewer.</p>"
-                f"<p>Domain: {domain_expertise} · {years_experience} years</p>"
-                f"<p><a href='{settings.BASE_URL}/admin/reviewers'>Review in admin</a></p>"
-            ),
-        )
+    return JSONResponse({"ok": True})
 
-    return templates.TemplateResponse("reviewer_apply.html", {
-        "request": request, "config": settings, "submitted": True,
-    })
 
+# ── Review (human verdict) ────────────────────────────────────────────────────
 
 @router.get("/review/{token}", response_class=HTMLResponse)
 def review_page(token: str, request: Request, db: Session = Depends(get_db)):
@@ -68,10 +82,12 @@ def review_page(token: str, request: Request, db: Session = Depends(get_db)):
     if not reviewer_token:
         raise HTTPException(status_code=404, detail="Review link not found.")
     if reviewer_token.used:
-        return HTMLResponse("<html><body style='font-family:sans-serif;padding:48px;'>"
-                            "<h2>This link has already been used.</h2>"
-                            "<p>Each review link is single-use. Contact hello@agenteval.com if you need help.</p>"
-                            "</body></html>")
+        return HTMLResponse(
+            "<html><body style='font-family:sans-serif;padding:48px;'>"
+            "<h2>This link has already been used.</h2>"
+            "<p>Each review link is single-use. Contact hello@agenteval.com if you need help.</p>"
+            "</body></html>"
+        )
     trace = db.query(Trace).filter(Trace.id == reviewer_token.trace_id).first()
     job   = db.query(Job).filter(Job.id == trace.job_id).first() if trace else None
     return templates.TemplateResponse("review.html", {
@@ -104,7 +120,6 @@ async def submit_review(token: str, request: Request, db: Session = Depends(get_
     reviewer_token.used = True
     db.commit()
 
-    # Check if all NEEDS_REVIEW traces for this job are resolved
     job = db.query(Job).filter(Job.id == trace.job_id).first()
     pending = db.query(Trace).filter(
         Trace.job_id == trace.job_id,
@@ -117,8 +132,11 @@ async def submit_review(token: str, request: Request, db: Session = Depends(get_
         send_email(
             to=settings.OPERATOR_EMAIL,
             subject=f"All traces reviewed for {job.company_name}",
-            html=f"<p>All traces for <strong>{job.company_name}</strong> have been reviewed. Job is now COMPLETE.</p>"
-                 f"<p><a href='{settings.BASE_URL}/admin/job/{job.id}'>View in admin</a></p>",
+            html=(
+                f"<p>All traces for <strong>{job.company_name}</strong> have been reviewed. "
+                f"Job is now COMPLETE.</p>"
+                f"<p><a href='{settings.BASE_URL}/admin/job/{job.id}'>View in admin</a></p>"
+            ),
         )
 
     return HTMLResponse("""
