@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {% block head %}<title>AgentEval</title>{% endblock %}
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #fff; color: #1d1d1f; min-height: 100vh; }
+
+    /* Header */
+    .portal-header {
+      height: 56px; background: #fff; border-bottom: 1px solid #e5e5e5;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    }
+    .portal-header-logo { font-size: 16px; font-weight: 600; color: #1d1d1f; text-decoration: none; }
+    .portal-header-center { font-size: 14px; color: #6e6e73; }
+    .portal-header-right { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    .portal-header-right a { color: #6e6e73; text-decoration: none; }
+    .portal-header-right a:hover { color: #1d1d1f; }
+
+    /* Layout */
+    .portal-layout { display: flex; padding-top: 56px; min-height: 100vh; }
+
+    /* Sidebar */
+    .portal-sidebar {
+      width: 200px; background: #f5f5f7; border-right: 1px solid #e5e5e5;
+      position: fixed; top: 56px; bottom: 0; left: 0; display: flex;
+      flex-direction: column; overflow-y: auto;
+    }
+    .portal-sidebar-company {
+      font-size: 14px; font-weight: 700; color: #1d1d1f;
+      padding: 24px 16px 8px 16px; word-break: break-word;
+    }
+    .portal-nav { flex: 1; }
+    .portal-nav a {
+      display: block; font-size: 14px; color: #1d1d1f;
+      padding: 8px 16px; text-decoration: none;
+    }
+    .portal-nav a:hover { background: #fff; }
+    .portal-nav a.active { background: #fff; font-weight: 600; }
+    .portal-nav a.dimmed { color: #999; pointer-events: none; }
+    .portal-status { padding: 16px; border-top: 1px solid #e5e5e5; }
+    .portal-status-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      margin-right: 6px; vertical-align: middle;
+    }
+    .portal-status-label { font-size: 13px; color: #444; vertical-align: middle; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .dot-pulse { animation: pulse 1.4s ease-in-out infinite; }
+
+    /* Main */
+    .portal-main {
+      margin-left: 200px; flex: 1; padding: 32px 40px;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* Utilities */
+    .pill {
+      display: inline-block; font-size: 12px; font-weight: 600;
+      padding: 2px 10px; border-radius: 12px; vertical-align: middle;
+    }
+    .pill-pass   { background: #eafaf1; color: #1d8348; }
+    .pill-fail   { background: #fdf2f0; color: #b03a2e; }
+    .pill-review { background: #fef9e7; color: #7d6608; }
+    .pill-pending{ background: #f5f5f7; color: #6e6e73; }
+
+    .btn {
+      display: inline-block; font-size: 14px; font-weight: 600;
+      padding: 10px 20px; border-radius: 8px; text-decoration: none;
+      cursor: pointer; border: none;
+    }
+    .btn-primary { background: #2e86de; color: #fff; }
+    .btn-primary:hover { background: #2272c3; }
+    .btn-secondary {
+      background: #fff; color: #2e86de;
+      border: 1.5px solid #2e86de;
+    }
+    .btn-secondary:hover { background: #f0f7ff; }
+    .btn-sm { font-size: 13px; padding: 7px 14px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      text-align: left; font-size: 12px; font-weight: 600; color: #6e6e73;
+      padding: 8px 12px; border-bottom: 1px solid #e5e5e5; text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:hover { background: #fafafa; cursor: pointer; }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Header -->
+<header class="portal-header">
+  <a href="/" class="portal-header-logo">AgentEval</a>
+  <span class="portal-header-center">{{ job.company_name }} Audit</span>
+  <div class="portal-header-right">
+    <span>hello@agenteval.com</span>
+    <a href="/client/{{ job.access_token }}/logout">Sign out</a>
+  </div>
+</header>
+
+<div class="portal-layout">
+
+  <!-- Sidebar -->
+  <nav class="portal-sidebar">
+    <div class="portal-sidebar-company">{{ job.company_name }}</div>
+    <div class="portal-nav">
+      <a href="/client/{{ job.access_token }}/dashboard"
+         {% if active_page == 'overview' %}class="active"{% endif %}>Overview</a>
+      <a href="/client/{{ job.access_token }}/traces"
+         {% if active_page == 'traces' %}class="active"{% endif %}>Traces</a>
+      <a href="/client/{{ job.access_token }}/report"
+         {% if active_page == 'report' %}class="active"
+         {% elif job.status != 'COMPLETE' %}class="dimmed"
+         {% endif %}>Report</a>
+    </div>
+
+    <!-- Status badge -->
+    <div class="portal-status">
+      {% if job.status == 'INTAKE' %}
+        <span class="portal-status-dot" style="background:#999;"></span>
+        <span class="portal-status-label">Awaiting payment</span>
+      {% elif job.status == 'PAID' %}
+        <span class="portal-status-dot" style="background:#2e86de;"></span>
+        <span class="portal-status-label">Ready to submit</span>
+      {% elif job.status == 'SUBMITTED' %}
+        <span class="portal-status-dot" style="background:#2e86de;"></span>
+        <span class="portal-status-label">Evaluation queued</span>
+      {% elif job.status == 'EVALUATING' %}
+        <span class="portal-status-dot dot-pulse" style="background:#e67e22;"></span>
+        <span class="portal-status-label">Evaluating...</span>
+      {% elif job.status == 'REVIEW' %}
+        <span class="portal-status-dot" style="background:#e67e22;"></span>
+        <span class="portal-status-label">Human review in progress</span>
+      {% elif job.status == 'COMPLETE' %}
+        <span class="portal-status-dot" style="background:#1d8348;"></span>
+        <span class="portal-status-label">Report ready</span>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="portal-main">
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+</body>
+</html>

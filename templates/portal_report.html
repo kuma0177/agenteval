@@ -1,0 +1,52 @@
+{% extends "portal_base.html" %}
+{% set active_page = 'report' %}
+
+{% block head %}<title>Report — AgentEval</title>{% endblock %}
+
+{% block content %}
+<h1 style="font-size:22px;font-weight:700;margin-bottom:24px;">Report</h1>
+
+<div style="max-width:520px;">
+  <h2 style="font-size:17px;font-weight:600;margin-bottom:20px;color:#444;">
+    Your evaluation is still in progress
+  </h2>
+
+  <!-- 4-step timeline -->
+  {% set steps = [
+    ('SUBMITTED', 'Traces submitted'),
+    ('EVALUATING', 'LLM evaluation'),
+    ('REVIEW', 'Human expert review'),
+    ('COMPLETE', 'Report ready'),
+  ] %}
+  {% set status_order = ['INTAKE','PAID','SUBMITTED','EVALUATING','REVIEW','COMPLETE'] %}
+  {% set current_idx = status_order.index(job.status) %}
+
+  <div style="margin-bottom:32px;">
+    {% for step_status, step_label in steps %}
+    {% set step_idx = status_order.index(step_status) %}
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      {% if step_idx < current_idx %}
+        <span style="font-size:20px;color:#1d8348;">&#10003;</span>
+        <span style="color:#1d8348;font-weight:500;">{{ step_label }}</span>
+      {% elif step_idx == current_idx %}
+        <span style="font-size:20px;color:#2e86de;">&#9679;</span>
+        <span style="color:#2e86de;font-weight:700;">{{ step_label }}</span>
+      {% else %}
+        <span style="font-size:20px;color:#ccc;">&#9675;</span>
+        <span style="color:#ccc;">{{ step_label }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <p style="font-size:14px;color:#6e6e73;margin-bottom:20px;">
+    We'll email <strong>{{ job.contact_email }}</strong> when your report is ready.
+  </p>
+
+  {% if config.CALENDLY_DEBRIEF_URL %}
+  <a href="{{ config.CALENDLY_DEBRIEF_URL }}" target="_blank" class="btn btn-secondary">
+    Schedule Debrief &rarr;
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "portal_base.html" %}
+{% set active_page = 'traces' %}
+
+{% block head %}<title>Traces — AgentEval</title>{% endblock %}
+
+{% block content %}
+<h1 style="font-size:22px;font-weight:700;margin-bottom:24px;">All Traces</h1>
+
+{% if traces %}
+<div style="border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px;">#</th>
+        <th>Task</th>
+        <th style="width:120px;">Status</th>
+        <th style="width:70px;">Score</th>
+        <th style="width:160px;">Weakest Dim</th>
+        <th style="width:110px;">Human Review</th>
+        <th style="width:60px;">Flagged</th>
+        <th style="width:30px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trace in traces %}
+      <tr onclick="location.href='/client/{{ job.access_token }}/trace/{{ trace.id }}'">
+        <td style="color:#999;">{{ loop.index }}</td>
+        <td>
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px;">
+            {{ trace.outcome[:70] }}{% if trace.outcome|length > 70 %}…{% endif %}
+          </div>
+        </td>
+        <td>
+          {% if trace.eval_status == 'PASS' %}
+            <span class="pill pill-pass">PASS</span>
+          {% elif trace.eval_status == 'FAIL' %}
+            <span class="pill pill-fail">FAIL</span>
+          {% elif trace.eval_status == 'NEEDS_REVIEW' %}
+            <span class="pill pill-review">NEEDS_REVIEW</span>
+          {% else %}
+            <span class="pill pill-pending">PENDING</span>
+          {% endif %}
+        </td>
+        <td style="font-size:14px;">
+          {% if trace.llm_score_overall is not none %}
+            {{ (trace.llm_score_overall * 100)|int }}%
+          {% else %}--{% endif %}
+        </td>
+        <td style="font-size:13px;color:#555;">
+          {% if trace.weakest_dim %}
+            {{ trace.weakest_dim }}
+          {% else %}--{% endif %}
+        </td>
+        <td style="font-size:13px;">
+          {% if trace.human_verdict %}
+            {% if trace.human_verdict == 'PASS' %}
+              <span class="pill pill-pass">{{ trace.human_verdict }}</span>
+            {% elif trace.human_verdict == 'FAIL' %}
+              <span class="pill pill-fail">{{ trace.human_verdict }}</span>
+            {% else %}
+              <span class="pill pill-review">{{ trace.human_verdict }}</span>
+            {% endif %}
+          {% elif trace.eval_status == 'NEEDS_REVIEW' %}
+            <span style="color:#999;font-size:12px;">Pending</span>
+          {% else %}--{% endif %}
+        </td>
+        <td style="text-align:center;">
+          {% if trace.client_flagged == 1 %}🚩{% endif %}
+        </td>
+        <td style="color:#999;">&rsaquo;</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p style="color:#999;font-size:14px;">No traces submitted yet.</p>
+{% endif %}
+
+{% endblock %}

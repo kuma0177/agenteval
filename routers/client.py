@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 import auth as auth_module
 from config import settings
 from database import get_db
-from models import Job, JobStatus, Trace
+from models import EvalStatus, Job, JobStatus, Trace
 from services.stripe_service import create_checkout_session
 
 router = APIRouter(tags=["client"])
@@ -261,6 +262,214 @@ async def portal_submit_post(access_token: str, request: Request, db: Session = 
         send_traces_submitted_alert(job, saved, db)
 
     return RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=303)
+
+
+# ── Portal: Dashboard ─────────────────────────────────────────────────────────
+
+@router.get("/client/{access_token}/dashboard", response_class=HTMLResponse)
+def portal_dashboard(access_token: str, request: Request, db: Session = Depends(get_db)):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    job.last_viewed_at = datetime.utcnow()
+    db.commit()
+
+    traces = db.query(Trace).filter(Trace.job_id == job.id).all()
+    total       = len(traces)
+    passed_list = [t for t in traces if t.eval_status == EvalStatus.PASS]
+    failed_list = [t for t in traces if t.eval_status == EvalStatus.FAIL]
+    nr_list     = [t for t in traces if t.eval_status == EvalStatus.NEEDS_REVIEW]
+    pend_list   = [t for t in traces if t.eval_status == EvalStatus.PENDING]
+
+    passed      = len(passed_list)
+    failed      = len(failed_list)
+    needs_review = len(nr_list)
+    pending     = len(pend_list)
+    evaluated   = passed + failed + needs_review
+    pass_rate   = int(passed / total * 100) if total > 0 else 0
+    in_progress = needs_review + pending
+    estimated   = (job.created_at + timedelta(days=7)).strftime("%B %d")
+
+    return templates.TemplateResponse("portal_dashboard.html", {
+        "request": request,
+        "job": job,
+        "traces": traces,
+        "total": total,
+        "passed": passed,
+        "failed": failed,
+        "needs_review": needs_review,
+        "pending": pending,
+        "evaluated": evaluated,
+        "pass_rate": pass_rate,
+        "in_progress": in_progress,
+        "estimated": estimated,
+        "config": settings,
+    })
+
+
+# ── Portal: Traces list ────────────────────────────────────────────────────────
+
+_DIM_KEYS = [
+    "task_performance",
+    "reasoning_autonomy",
+    "operational_reliability",
+    "user_experience",
+    "ethics_safety",
+    "efficiency",
+]
+_DIM_ATTRS = [
+    "score_task_performance",
+    "score_reasoning_autonomy",
+    "score_operational_reliability",
+    "score_user_experience",
+    "score_ethics_safety",
+    "score_efficiency",
+]
+_DIM_LABELS = [
+    "Task Performance",
+    "Reasoning & Autonomy",
+    "Operational Reliability",
+    "User Experience & Trust",
+    "Ethics & Safety",
+    "Efficiency",
+]
+
+
+def _weakest_dim(trace: Trace):
+    """Return (label, key) of the dimension with the lowest non-null score, skipping null efficiency."""
+    best_label, best_key, best_score = None, None, None
+    for label, key, attr in zip(_DIM_LABELS, _DIM_KEYS, _DIM_ATTRS):
+        score = getattr(trace, attr)
+        if score is None:
+            continue
+        if best_score is None or score < best_score:
+            best_score = score
+            best_label = label
+            best_key = key
+    return best_label, best_key
+
+
+@router.get("/client/{access_token}/traces", response_class=HTMLResponse)
+def portal_traces(access_token: str, request: Request, db: Session = Depends(get_db)):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    traces = db.query(Trace).filter(Trace.job_id == job.id).all()
+
+    # Attach weakest dim label to each trace as a synthetic attr
+    enriched = []
+    for t in traces:
+        label, key = _weakest_dim(t)
+        t.weakest_dim = label
+        enriched.append(t)
+
+    return templates.TemplateResponse("portal_traces.html", {
+        "request": request,
+        "job": job,
+        "traces": enriched,
+    })
+
+
+# ── Portal: Trace detail ───────────────────────────────────────────────────────
+
+@router.get("/client/{access_token}/trace/{trace_id}", response_class=HTMLResponse)
+def portal_trace_detail(
+    access_token: str,
+    trace_id: str,
+    request: Request,
+    msg: str = None,
+    db: Session = Depends(get_db),
+):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    trace = db.query(Trace).filter(Trace.id == trace_id).first()
+    if not trace or trace.job_id != job.id:
+        raise HTTPException(status_code=404, detail="Trace not found.")
+
+    dim_notes = {}
+    if trace.dim_notes:
+        try:
+            dim_notes = json.loads(trace.dim_notes)
+        except Exception:
+            pass
+
+    _, weakest_dim_key = _weakest_dim(trace)
+
+    return templates.TemplateResponse("portal_trace.html", {
+        "request": request,
+        "job": job,
+        "trace": trace,
+        "dim_notes": dim_notes,
+        "weakest_dim_key": weakest_dim_key or "",
+        "msg": msg,
+    })
+
+
+@router.post("/client/{access_token}/trace/{trace_id}/comment")
+async def portal_trace_comment(
+    access_token: str,
+    trace_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    trace = db.query(Trace).filter(Trace.id == trace_id).first()
+    if not trace or trace.job_id != job.id:
+        raise HTTPException(status_code=404, detail="Trace not found.")
+
+    form = await request.form()
+    trace.client_comment = form.get("comment", "").strip() or None
+    trace.client_flagged = 1 if form.get("flagged") else 0
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/client/{access_token}/trace/{trace_id}?msg=Note+saved",
+        status_code=303,
+    )
+
+
+# ── Portal: Report ─────────────────────────────────────────────────────────────
+
+@router.get("/client/{access_token}/report")
+def portal_report(access_token: str, request: Request, db: Session = Depends(get_db)):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    report_ready = (
+        job.status == JobStatus.COMPLETE
+        and job.report_path
+        and os.path.exists(job.report_path)
+    )
+
+    if not report_ready:
+        return templates.TemplateResponse("portal_report.html", {
+            "request": request,
+            "job": job,
+            "config": settings,
+        })
+
+    job.last_viewed_at = datetime.utcnow()
+    db.commit()
+
+    filename = f"AgentEval_{job.company_name.replace(' ', '_')}_Report.pdf"
+    return FileResponse(
+        path=job.report_path,
+        media_type="application/pdf",
+        filename=filename,
+    )
 
 
 # ── Legacy submit routes (kept for backward compat) ───────────────────────────

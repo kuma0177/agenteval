@@ -1,0 +1,223 @@
+{% extends "portal_base.html" %}
+{% set active_page = 'traces' %}
+
+{% block head %}<title>Trace Detail — AgentEval</title>{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+  media="print" onload="this.media='all'">
+<style>
+  .dim-bar-bg {
+    display:inline-block; width:180px; height:10px; background:#e5e5e5;
+    border-radius:5px; vertical-align:middle; overflow:hidden;
+  }
+  .dim-bar-fill { height:100%; border-radius:5px; }
+  .dim-row { display:flex; align-items:center; gap:12px; padding:10px 0;
+             border-bottom:1px solid #f0f0f0; }
+  .dim-label { width:220px; font-size:13px; font-weight:500; flex-shrink:0; }
+  .dim-rating { width:50px; font-size:12px; font-weight:600; text-align:right; }
+  .dim-note { font-size:12px; color:#666; flex:1; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<a href="/client/{{ job.access_token }}/traces"
+   style="font-size:14px;color:#2e86de;text-decoration:none;display:inline-block;margin-bottom:20px;">
+  &larr; Back to all traces
+</a>
+
+<!-- TASK CARD -->
+<div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:20px;margin-bottom:24px;">
+  <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:.08em;margin-bottom:6px;">TASK</div>
+  <p style="font-size:14px;color:#1d1d1f;line-height:1.6;">{{ trace.outcome }}</p>
+</div>
+
+<!-- VERDICT -->
+{% if trace.eval_status != 'PENDING' %}
+<div style="margin-bottom:24px;">
+  {% if trace.eval_status == 'PASS' %}
+    <div style="font-size:48px;font-weight:700;color:#1d8348;line-height:1;">&#10003; PASS</div>
+  {% elif trace.eval_status == 'FAIL' %}
+    <div style="font-size:48px;font-weight:700;color:#b03a2e;line-height:1;">&#10007; FAIL</div>
+  {% elif trace.eval_status == 'NEEDS_REVIEW' %}
+    <div style="font-size:48px;font-weight:700;color:#7d6608;line-height:1;">Pending Expert Review</div>
+  {% endif %}
+
+  <div style="font-size:18px;color:#444;margin-top:8px;">
+    Composite score: {{ ((trace.llm_score_overall or 0) * 100)|int }}%
+  </div>
+
+  {% if trace.human_verdict %}
+  <div style="background:#e8f0fe;border:1px solid #c5d8fc;border-radius:8px;
+              padding:12px 16px;margin-top:14px;font-size:14px;color:#1a3a6e;">
+    Expert reviewed. Final verdict: <strong>{{ trace.human_verdict }}</strong>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div style="background:#f5f5f7;border-radius:10px;padding:20px;margin-bottom:24px;color:#6e6e73;font-size:14px;">
+  This trace is queued for evaluation.
+</div>
+{% endif %}
+
+<!-- 6-DIMENSION BREAKDOWN -->
+{% if trace.eval_status != 'PENDING' %}
+<div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:24px;margin-bottom:24px;">
+  <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Dimension Scores</h3>
+
+  {% set dims = [
+    ("Task Performance", "30%", trace.score_task_performance, "task_performance"),
+    ("Reasoning & Autonomy", "20%", trace.score_reasoning_autonomy, "reasoning_autonomy"),
+    ("Operational Reliability", "15%", trace.score_operational_reliability, "operational_reliability"),
+    ("User Experience & Trust", "15%", trace.score_user_experience, "user_experience"),
+    ("Ethics & Safety", "10%", trace.score_ethics_safety, "ethics_safety"),
+    ("Efficiency", "10%", trace.score_efficiency, "efficiency"),
+  ] %}
+
+  {% for label, weight, score, key in dims %}
+  {% set is_weakest = (key == weakest_dim_key) %}
+  <div class="dim-row" style="{% if is_weakest %}background:#fefce8;border-radius:6px;padding:10px 8px;{% endif %}">
+    <div class="dim-label">
+      {{ label }}
+      <span style="font-size:11px;color:#999;font-weight:400;">({{ weight }})</span>
+    </div>
+
+    {% if key == 'efficiency' and score is none %}
+      <span style="font-size:13px;color:#999;">N/A — no metadata</span>
+      <div class="dim-rating" style="color:#999;">N/A</div>
+    {% else %}
+      {% set pct = ((score or 0) * 100)|int %}
+      {% if (score or 0) >= 0.80 %}
+        {% set bar_color = "#1d8348" %}
+        {% set rating = "Strong" %}
+        {% set rating_color = "#1d8348" %}
+      {% elif (score or 0) >= 0.60 %}
+        {% set bar_color = "#b7770d" %}
+        {% set rating = "Fair" %}
+        {% set rating_color = "#b7770d" %}
+      {% else %}
+        {% set bar_color = "#b03a2e" %}
+        {% set rating = "Weak" %}
+        {% set rating_color = "#b03a2e" %}
+      {% endif %}
+      <div class="dim-bar-bg">
+        <div class="dim-bar-fill" style="width:{{ pct }}%;background:{{ bar_color }};"></div>
+      </div>
+      <span style="font-size:13px;font-weight:600;width:40px;">{{ pct }}%</span>
+      <div class="dim-rating" style="color:{{ rating_color }};">{{ rating }}</div>
+      <div class="dim-note">{{ dim_notes.get(key, '') }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <!-- AI Reasoning -->
+  {% if trace.llm_reasoning %}
+  <div style="background:#f5f5f7;border-radius:10px;padding:16px;margin-top:20px;">
+    <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:.08em;margin-bottom:8px;">
+      AI JUDGE REASONING
+    </div>
+    <p style="font-size:14px;color:#1d1d1f;line-height:1.6;">{{ trace.llm_reasoning }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Failure detail -->
+  {% if trace.failure_detail %}
+  <div style="background:#fdf2f0;border-left:4px solid #b03a2e;border-radius:0 6px 6px 0;
+              padding:12px 16px;margin-top:16px;font-size:14px;color:#b03a2e;">
+    <strong>Specific failure:</strong> {{ trace.failure_detail }}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- HUMAN EXPERT REVIEW -->
+{% if trace.human_verdict %}
+<div style="border-left:4px solid #0066cc;background:#f0f7ff;border-radius:0 10px 10px 0;
+            padding:20px;margin-bottom:24px;">
+  <div style="font-size:11px;font-weight:700;color:#0066cc;letter-spacing:.08em;margin-bottom:8px;">
+    HUMAN EXPERT REVIEW
+  </div>
+  {% if trace.human_verdict == 'PASS' %}
+    <span class="pill pill-pass" style="margin-bottom:10px;display:inline-block;">{{ trace.human_verdict }}</span>
+  {% elif trace.human_verdict == 'FAIL' %}
+    <span class="pill pill-fail" style="margin-bottom:10px;display:inline-block;">{{ trace.human_verdict }}</span>
+  {% else %}
+    <span class="pill pill-review" style="margin-bottom:10px;display:inline-block;">{{ trace.human_verdict }}</span>
+  {% endif %}
+  <p style="font-size:14px;color:#1d1d1f;margin-top:8px;line-height:1.6;">
+    {{ trace.human_notes or "No additional notes." }}
+  </p>
+</div>
+{% elif trace.eval_status == 'NEEDS_REVIEW' %}
+<div style="background:#fef9e7;border:1px solid #f9e08a;border-radius:10px;
+            padding:16px 20px;margin-bottom:24px;font-size:14px;color:#7d6608;">
+  Awaiting expert review. Usually 1–2 business days.
+</div>
+{% endif %}
+
+<!-- FULL CONVERSATION -->
+<div style="background:#1d1d1f;border-radius:14px;padding:24px;margin-bottom:28px;position:relative;">
+  <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:.08em;margin-bottom:12px;">
+    FULL CONVERSATION TRACE
+  </div>
+  <button onclick="copyTrace()" id="copy-btn"
+    style="position:absolute;top:20px;right:20px;background:#3a3a3c;color:#fff;
+           border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;">
+    Copy
+  </button>
+  <pre id="trace-json" style="overflow-x:auto;font-size:12px;line-height:1.5;"><code class="language-json">{{ trace.raw_json }}</code></pre>
+</div>
+
+<!-- YOUR NOTES -->
+<div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:24px;margin-bottom:24px;">
+  <h3 style="font-size:16px;font-weight:700;margin-bottom:6px;">Your Notes</h3>
+  <p style="font-size:14px;color:#6e6e73;margin-bottom:16px;">
+    Questions and comments for the debrief call.
+  </p>
+
+  {% if msg %}
+  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+              padding:10px 14px;margin-bottom:14px;font-size:14px;color:#166534;">
+    &#10003; {{ msg }}
+  </div>
+  {% endif %}
+
+  <form action="/client/{{ job.access_token }}/trace/{{ trace.id }}/comment" method="POST">
+    <textarea name="comment" rows="4"
+      style="width:100%;padding:10px 12px;border:1.5px solid #e5e5e5;border-radius:8px;
+             font-size:14px;font-family:inherit;resize:vertical;margin-bottom:12px;">{{ trace.client_comment or '' }}</textarea>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <label style="font-size:14px;color:#444;display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" name="flagged" value="1"
+               {% if trace.client_flagged == 1 %}checked{% endif %}>
+        Flag for debrief
+      </label>
+      <button type="submit" class="btn btn-secondary btn-sm">Save Note</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function copyTrace() {
+  var text = document.getElementById('trace-json').innerText;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+  });
+}
+</script>
+<script>
+// Lazy-load highlight.js
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+  s.onload = function() { hljs.highlightAll(); };
+  document.head.appendChild(s);
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "portal_base.html" %}
+{% set active_page = 'overview' %}
+
+{% block head %}<title>Dashboard — AgentEval</title>{% endblock %}
+
+{% block content %}
+
+<!-- STATUS BANNER -->
+{% if job.status == 'PAID' and total == 0 %}
+<div style="background:#e8f0fe;border:1px solid #c5d8fc;border-radius:12px;padding:28px 32px;margin-bottom:32px;">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;color:#1a3a6e;">
+    Ready to submit your traces
+  </h2>
+  <p style="font-size:14px;color:#1a3a6e;margin-bottom:16px;">
+    Payment confirmed. Submit your agent's conversation logs.
+  </p>
+  <a href="/client/{{ job.access_token }}/submit" class="btn btn-primary">
+    Submit Traces &rarr;
+  </a>
+</div>
+
+{% elif job.status == 'SUBMITTED' %}
+<div style="background:#fef9e7;border:1px solid #f9e08a;border-radius:12px;padding:28px 32px;margin-bottom:32px;">
+  <h2 style="font-size:18px;font-weight:700;color:#7d6608;">
+    {{ total }} trace{% if total != 1 %}s{% endif %} submitted — evaluation will begin shortly.
+  </h2>
+</div>
+
+{% elif job.status == 'EVALUATING' %}
+<div style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:32px;margin-bottom:32px;
+            box-shadow:0 2px 12px rgba(0,0,0,.06);">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;">
+    {{ evaluated }} of {{ total }} traces evaluated
+  </h2>
+  <div style="background:#e5e5e5;border-radius:10px;height:20px;overflow:hidden;margin-bottom:12px;">
+    <div style="background:#1d8348;height:100%;width:{{ (evaluated/total*100)|int if total > 0 else 0 }}%;
+                border-radius:10px;transition:width .4s;"></div>
+  </div>
+  <p style="font-size:14px;color:#6e6e73;">
+    {{ pending }} remaining &middot; Est. complete {{ estimated }}
+  </p>
+</div>
+
+{% elif job.status == 'REVIEW' %}
+<div style="background:#fef9e7;border:1px solid #f9e08a;border-radius:12px;padding:28px 32px;margin-bottom:32px;">
+  <h2 style="font-size:18px;font-weight:700;color:#7d6608;">
+    {{ needs_review }} trace{% if needs_review != 1 %}s{% endif %} in human expert review.
+    Usually 1–2 business days.
+  </h2>
+</div>
+
+{% elif job.status == 'COMPLETE' %}
+<div style="background:#eafaf1;border:1.5px solid #1d8348;border-radius:12px;padding:32px;margin-bottom:32px;">
+  <h2 style="font-size:20px;font-weight:700;color:#1d8348;margin-bottom:12px;">Your report is ready!</h2>
+  <div style="font-size:64px;font-weight:700;color:#1d8348;line-height:1;margin-bottom:8px;">{{ pass_rate }}%</div>
+  <p style="font-size:15px;color:#1d8348;margin-bottom:20px;">
+    {{ passed }} of {{ total }} traces passed
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="/client/{{ job.access_token }}/report" class="btn btn-primary">
+      Download PDF Report &rarr;
+    </a>
+    {% if config.CALENDLY_DEBRIEF_URL %}
+    <a href="{{ config.CALENDLY_DEBRIEF_URL }}" target="_blank" class="btn btn-secondary">
+      Schedule Debrief &rarr;
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- TRACE PILLS -->
+{% if total > 0 %}
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;align-items:center;">
+  <span class="pill pill-pass">{{ passed }} PASS</span>
+  <span class="pill pill-fail">{{ failed }} FAIL</span>
+  <span class="pill pill-pending">{{ in_progress }} In Progress</span>
+</div>
+{% endif %}
+
+<!-- TRACES TABLE -->
+<h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">Your Traces</h2>
+
+{% if total > 0 %}
+<div style="border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px;">#</th>
+        <th>Task</th>
+        <th style="width:120px;">Status</th>
+        <th style="width:80px;">Score</th>
+        <th style="width:50px;">Flagged</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trace in traces %}
+      <tr onclick="location.href='/client/{{ job.access_token }}/trace/{{ trace.id }}'">
+        <td style="color:#999;">{{ loop.index }}</td>
+        <td style="max-width:0;">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px;">
+            {{ trace.outcome[:70] }}{% if trace.outcome|length > 70 %}…{% endif %}
+          </div>
+        </td>
+        <td>
+          {% if trace.eval_status == 'PASS' %}
+            <span class="pill pill-pass">PASS</span>
+          {% elif trace.eval_status == 'FAIL' %}
+            <span class="pill pill-fail">FAIL</span>
+          {% elif trace.eval_status == 'NEEDS_REVIEW' %}
+            <span class="pill pill-review">NEEDS_REVIEW</span>
+          {% else %}
+            <span class="pill pill-pending">PENDING</span>
+          {% endif %}
+        </td>
+        <td style="font-size:14px;color:#444;">
+          {% if trace.llm_score_overall is not none %}
+            {{ (trace.llm_score_overall * 100)|int }}%
+          {% else %}
+            --
+          {% endif %}
+        </td>
+        <td style="text-align:center;">
+          {% if trace.client_flagged == 1 %}🚩{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p style="color:#999;font-size:14px;">No traces submitted yet.</p>
+{% endif %}
+
+{% endblock %}
