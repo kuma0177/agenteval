@@ -1,30 +1,55 @@
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 import requests
 
 from config import settings
 
 
-def send_email(to: str, subject: str, html: str) -> bool:
-    """Send an email via the Resend API. Returns True on success."""
-    if not settings.RESEND_API_KEY or not settings.RESEND_FROM_EMAIL:
-        print(f"[email] SKIPPED — RESEND_API_KEY or RESEND_FROM_EMAIL not set. Would send to: {to}")
-        return False
+def _send_via_resend(to: str, subject: str, html: str) -> bool:
     response = requests.post(
         "https://api.resend.com/emails",
         headers={
             "Authorization": f"Bearer {settings.RESEND_API_KEY}",
             "Content-Type": "application/json",
         },
-        json={
-            "from": settings.RESEND_FROM_EMAIL,
-            "to": [to],
-            "subject": subject,
-            "html": html,
-        },
+        json={"from": settings.RESEND_FROM_EMAIL, "to": [to], "subject": subject, "html": html},
     )
     if response.status_code not in (200, 201):
-        print(f"[email] FAILED ({response.status_code}): {response.text[:200]}")
+        print(f"[email] Resend FAILED ({response.status_code}): {response.text[:200]}")
         return False
+    print(f"[email] Sent via Resend to {to}")
     return True
+
+
+def _send_via_smtp(to: str, subject: str, html: str) -> bool:
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = settings.SMTP_USERNAME
+    msg["To"]      = to
+    msg.attach(MIMEText(html, "html"))
+    try:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            server.sendmail(settings.SMTP_USERNAME, to, msg.as_string())
+        print(f"[email] Sent via SMTP to {to}")
+        return True
+    except Exception as e:
+        print(f"[email] SMTP FAILED: {e}")
+        return False
+
+
+def send_email(to: str, subject: str, html: str) -> bool:
+    """Send via Resend if configured, else fall back to Gmail SMTP."""
+    if settings.RESEND_API_KEY and settings.RESEND_FROM_EMAIL:
+        return _send_via_resend(to, subject, html)
+    if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+        return _send_via_smtp(to, subject, html)
+    print(f"[email] SKIPPED — no email provider configured. Would send to: {to}")
+    return False
 
 
 # ── Lead / sample report email ────────────────────────────────────────────────

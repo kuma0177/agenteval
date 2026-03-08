@@ -6,8 +6,10 @@ python-multipart
 anthropic
 weasyprint
 stripe
+httpx
 requests
 jinja2
 python-dotenv
 aiofiles
-python-jose
+passlib[bcrypt]
+itsdangerous
