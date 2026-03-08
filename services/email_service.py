@@ -268,6 +268,90 @@ def send_reviewer_email(reviewer_email: str, trace, token_str: str) -> bool:
     return send_email(reviewer_email, "Expert review needed — 5 minutes — AgentEval", html)
 
 
+# ── Logged email helpers (write to EmailLog) ──────────────────────────────────
+
+def _log_email(db, recipient_email: str, email_type: str, job_id=None, success=True):
+    from models import EmailLog
+    log = EmailLog(
+        recipient_email=recipient_email,
+        email_type=email_type,
+        job_id=job_id,
+        status="SENT" if success else "FAILED",
+    )
+    db.add(log)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def send_payment_confirmed(job, db) -> bool:
+    submit_url = f"{settings.BASE_URL}/client/{job.access_token}/setup-password"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+      <h2 style="color:#2e86de;">Payment confirmed — set up your account</h2>
+      <p>Hi {job.contact_name},</p>
+      <p>Your payment of $3,500 has been received. Create your portal password to submit traces.</p>
+      <p style="margin:24px 0;">
+        <a href="{submit_url}"
+           style="background:#2e86de;color:#fff;padding:12px 24px;border-radius:6px;
+                  text-decoration:none;font-weight:700;">Set Up Your Account &rarr;</a>
+      </p>
+      <p style="color:#888;font-size:13px;">— The AgentEval Team &nbsp;|&nbsp; hello@agenteval.com</p>
+    </div>
+    """
+    success = send_email(job.contact_email, "Payment confirmed — set up your account", html)
+    _log_email(db, job.contact_email, "payment_confirmed", job_id=job.id, success=success)
+    return success
+
+
+def send_payment_received_alert(job, db) -> bool:
+    if not settings.OPERATOR_EMAIL:
+        return False
+    html = (
+        f"<p><strong>{job.company_name}</strong> paid $3,500.</p>"
+        f"<p>Contact: {job.contact_name} ({job.contact_email})</p>"
+        f"<p><a href='{settings.BASE_URL}/admin/job/{job.id}'>View job in admin</a></p>"
+    )
+    success = send_email(settings.OPERATOR_EMAIL, f"{job.company_name} paid — job ready", html)
+    _log_email(db, settings.OPERATOR_EMAIL, "payment_received_alert", job_id=job.id, success=success)
+    return success
+
+
+def send_evaluation_started(job, trace_count: int, db) -> bool:
+    dashboard_url = f"{settings.BASE_URL}/client/{job.access_token}/dashboard"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+      <h2 style="color:#2e86de;">Evaluation started — {trace_count} traces received</h2>
+      <p>Hi {job.contact_name},</p>
+      <p>We've received your {trace_count} agent trace{"s" if trace_count != 1 else ""} and evaluation has begun.
+         You'll receive your full report within 5 business days.</p>
+      <p style="margin:24px 0;">
+        <a href="{dashboard_url}"
+           style="background:#2e86de;color:#fff;padding:12px 24px;border-radius:6px;
+                  text-decoration:none;font-weight:700;">View Your Portal &rarr;</a>
+      </p>
+      <p style="color:#888;font-size:13px;">— The AgentEval Team &nbsp;|&nbsp; hello@agenteval.com</p>
+    </div>
+    """
+    success = send_email(job.contact_email, f"Evaluation started — {trace_count} traces received", html)
+    _log_email(db, job.contact_email, "evaluation_started", job_id=job.id, success=success)
+    return success
+
+
+def send_traces_submitted_alert(job, trace_count: int, db) -> bool:
+    if not settings.OPERATOR_EMAIL:
+        return False
+    html = (
+        f"<p><strong>{job.company_name}</strong> submitted {trace_count} traces — ready for evaluation.</p>"
+        f"<p>Contact: {job.contact_name} ({job.contact_email})</p>"
+        f"<p><a href='{settings.BASE_URL}/admin/job/{job.id}'>View in admin &rarr;</a></p>"
+    )
+    success = send_email(settings.OPERATOR_EMAIL, f"{job.company_name} submitted {trace_count} traces", html)
+    _log_email(db, settings.OPERATOR_EMAIL, "traces_submitted_alert", job_id=job.id, success=success)
+    return success
+
+
 # ── Legacy helpers (still used by existing routers) ────────────────────────────
 
 def send_intake_confirmation(contact_email: str, contact_name: str, access_token: str) -> bool:

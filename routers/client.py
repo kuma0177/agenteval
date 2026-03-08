@@ -2,10 +2,12 @@ import json
 import os
 
 from fastapi import APIRouter, Depends, Request, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+import auth as auth_module
 from config import settings
 from database import get_db
 from models import Job, JobStatus, Trace
@@ -14,6 +16,10 @@ from services.stripe_service import create_checkout_session
 router = APIRouter(tags=["client"])
 templates = Jinja2Templates(directory="templates")
 
+_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _get_job_or_404(token: str, db: Session) -> Job:
     job = db.query(Job).filter(Job.access_token == token).first()
@@ -22,33 +28,242 @@ def _get_job_or_404(token: str, db: Session) -> Job:
     return job
 
 
-# ── Intake ──────────────────────────────────────────────────────────────────
+def _require_client_auth(request: Request, access_token: str, db: Session):
+    """Returns Job if authenticated, or RedirectResponse if not."""
+    cookie = request.cookies.get("client_session")
+    login_url = f"/client/{access_token}/login"
+    if not cookie:
+        return RedirectResponse(url=login_url, status_code=302)
+    job_id = auth_module.verify_client_session(cookie)
+    if not job_id:
+        return RedirectResponse(url=login_url, status_code=302)
+    job = db.query(Job).filter(Job.access_token == access_token).first()
+    if not job or job.id != job_id:
+        return RedirectResponse(url=login_url, status_code=302)
+    return job
+
+
+def _has_valid_session(request: Request, access_token: str, db: Session) -> bool:
+    cookie = request.cookies.get("client_session")
+    if not cookie:
+        return False
+    job_id = auth_module.verify_client_session(cookie)
+    if not job_id:
+        return False
+    job = db.query(Job).filter(Job.access_token == access_token).first()
+    return bool(job and job.id == job_id)
+
+
+# ── Intake ────────────────────────────────────────────────────────────────────
 
 @router.get("/intake/{access_token}", response_class=HTMLResponse)
 def intake_page(access_token: str, request: Request, db: Session = Depends(get_db)):
     job = _get_job_or_404(access_token, db)
-    if job.status not in (JobStatus.INTAKE,):
-        return RedirectResponse(url=f"/submit/{access_token}", status_code=302)
+    beyond_intake = job.status not in (JobStatus.INTAKE,)
+    if beyond_intake:
+        return RedirectResponse(url=f"/client/{access_token}/login", status_code=302)
     return templates.TemplateResponse("intake.html", {"request": request, "job": job, "config": settings})
 
 
 @router.post("/intake/{access_token}/checkout")
 def intake_checkout(access_token: str, db: Session = Depends(get_db)):
     job = _get_job_or_404(access_token, db)
-    success_url = f"{settings.BASE_URL}/submit/{access_token}?payment=success"
-    cancel_url  = f"{settings.BASE_URL}/intake/{access_token}?cancelled=true"
-    checkout_url = create_checkout_session(
+    success_url = f"{settings.BASE_URL}/client/{access_token}/setup-password"
+    cancel_url  = f"{settings.BASE_URL}/intake/{access_token}"
+    session_id, session_url = create_checkout_session(
         job_id=job.id,
         price_id=settings.STRIPE_PRICE_ID_STARTER,
         success_url=success_url,
         cancel_url=cancel_url,
+        customer_email=job.contact_email,
     )
-    job.stripe_session = checkout_url  # will be overwritten by webhook with real session ID
+    job.stripe_session = session_id
     db.commit()
-    return RedirectResponse(url=checkout_url, status_code=303)
+    return RedirectResponse(url=session_url, status_code=303)
 
 
-# ── Submission ───────────────────────────────────────────────────────────────
+# ── Portal Auth ───────────────────────────────────────────────────────────────
+
+@router.get("/client/{access_token}/setup-password", response_class=HTMLResponse)
+def setup_password_page(access_token: str, request: Request, db: Session = Depends(get_db)):
+    job = _get_job_or_404(access_token, db)
+    if job.status != JobStatus.PAID:
+        return RedirectResponse(url=f"/intake/{access_token}", status_code=302)
+    if job.client_password_hash:
+        return RedirectResponse(url=f"/client/{access_token}/login", status_code=302)
+    return templates.TemplateResponse("portal_setup.html", {"request": request, "job": job})
+
+
+@router.post("/client/{access_token}/setup-password")
+async def setup_password_post(access_token: str, request: Request, db: Session = Depends(get_db)):
+    job = _get_job_or_404(access_token, db)
+    if job.status != JobStatus.PAID:
+        return RedirectResponse(url=f"/intake/{access_token}", status_code=302)
+
+    form = await request.form()
+    password = form.get("password", "")
+    confirm  = form.get("confirm_password", "")
+
+    error = None
+    if len(password) < 8:
+        error = "Password must be at least 8 characters."
+    elif password != confirm:
+        error = "Passwords do not match."
+
+    if error:
+        return templates.TemplateResponse(
+            "portal_setup.html",
+            {"request": request, "job": job, "error": error},
+            status_code=400,
+        )
+
+    job.client_password_hash = _pwd_context.hash(password)
+    db.commit()
+
+    token = auth_module.create_client_session(job.id)
+    response = RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=303)
+    response.set_cookie(
+        "client_session", token,
+        httponly=True, samesite="lax", max_age=2592000,
+    )
+    return response
+
+
+@router.get("/client/{access_token}/login", response_class=HTMLResponse)
+def login_page(
+    access_token: str,
+    request: Request,
+    msg: str = None,
+    db: Session = Depends(get_db),
+):
+    job = _get_job_or_404(access_token, db)
+    if _has_valid_session(request, access_token, db):
+        return RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=302)
+    return templates.TemplateResponse(
+        "portal_login.html",
+        {"request": request, "job": job, "msg": msg},
+    )
+
+
+@router.post("/client/{access_token}/login")
+async def login_post(access_token: str, request: Request, db: Session = Depends(get_db)):
+    job = _get_job_or_404(access_token, db)
+
+    form = await request.form()
+    password = form.get("password", "")
+
+    if not job.client_password_hash or not _pwd_context.verify(password, job.client_password_hash):
+        return templates.TemplateResponse(
+            "portal_login.html",
+            {"request": request, "job": job, "error": "Incorrect password."},
+            status_code=400,
+        )
+
+    token = auth_module.create_client_session(job.id)
+    response = RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=303)
+    response.set_cookie(
+        "client_session", token,
+        httponly=True, samesite="lax", max_age=2592000,
+    )
+    return response
+
+
+@router.get("/client/{access_token}/logout")
+def logout(access_token: str):
+    response = RedirectResponse(
+        url=f"/client/{access_token}/login?msg=Signed+out+successfully",
+        status_code=302,
+    )
+    response.delete_cookie("client_session")
+    return response
+
+
+# ── Trace Submission (portal) ─────────────────────────────────────────────────
+
+@router.get("/client/{access_token}/submit", response_class=HTMLResponse)
+def portal_submit_page(access_token: str, request: Request, db: Session = Depends(get_db)):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    if job.status != JobStatus.PAID:
+        if job.status in (JobStatus.SUBMITTED, JobStatus.EVALUATING, JobStatus.REVIEW, JobStatus.COMPLETE):
+            return RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=302)
+        return templates.TemplateResponse(
+            "portal_error.html",
+            {"request": request, "job": job, "message": "Payment not confirmed."},
+            status_code=402,
+        )
+
+    return templates.TemplateResponse(
+        "submit.html",
+        {"request": request, "job": job, "access_token": access_token, "config": settings},
+    )
+
+
+@router.post("/client/{access_token}/submit")
+async def portal_submit_post(access_token: str, request: Request, db: Session = Depends(get_db)):
+    auth_result = _require_client_auth(request, access_token, db)
+    if isinstance(auth_result, RedirectResponse):
+        return auth_result
+    job = auth_result
+
+    from services.email_service import send_evaluation_started, send_traces_submitted_alert
+
+    form = await request.form()
+    raw_traces = list(form.getlist("traces[]"))
+    outcomes   = list(form.getlist("outcomes[]"))
+
+    trace_file = form.get("trace_file")
+    if trace_file and hasattr(trace_file, "read"):
+        content = await trace_file.read()
+        if content:
+            try:
+                data = json.loads(content)
+                if isinstance(data, list):
+                    for item in data:
+                        raw_traces.append(json.dumps(item))
+                        outcomes.append(item.get("outcome", "Unknown"))
+                else:
+                    raw_traces.append(content.decode())
+                    outcomes.append("Uploaded trace")
+            except Exception:
+                pass
+
+    saved = 0
+    for i, raw in enumerate(raw_traces):
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            parsed = {}
+        messages  = parsed.get("messages", [])
+        turn_count = len([m for m in messages if m.get("role") == "assistant"])
+        outcome   = outcomes[i] if i < len(outcomes) else parsed.get("outcome", "Unknown")
+        metadata  = parsed.get("metadata", {})
+        trace = Trace(
+            job_id=job.id,
+            raw_json=raw,
+            turn_count=turn_count,
+            outcome=outcome,
+        )
+        db.add(trace)
+        saved += 1
+
+    if saved:
+        job.status = JobStatus.SUBMITTED
+        db.commit()
+
+        send_evaluation_started(job, saved, db)
+        send_traces_submitted_alert(job, saved, db)
+
+    return RedirectResponse(url=f"/client/{access_token}/dashboard", status_code=303)
+
+
+# ── Legacy submit routes (kept for backward compat) ───────────────────────────
 
 @router.get("/submit/{access_token}", response_class=HTMLResponse)
 def submit_page(
@@ -145,7 +360,7 @@ async def submit_traces(
     return RedirectResponse(url=f"/submit/{access_token}?submitted=true", status_code=303)
 
 
-# ── Report ────────────────────────────────────────────────────────────────────
+# ── Report ─────────────────────────────────────────────────────────────────────
 
 _STATUS_LABELS = {
     JobStatus.INTAKE: ("Intake form", 1),
@@ -215,7 +430,6 @@ def report_page(access_token: str, request: Request, db: Session = Depends(get_d
 </html>"""
         return HTMLResponse(html)
 
-    # Report is ready — show download page
     download_url = f"/report/{access_token}/download"
     calendly = settings.CALENDLY_URL or "#"
     html = f"""<!DOCTYPE html>
